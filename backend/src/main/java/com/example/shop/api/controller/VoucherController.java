@@ -1,0 +1,83 @@
+package com.example.shop.api.controller;
+
+import com.example.shop.application.dto.common.ApiResponse;
+import com.example.shop.application.dto.request.VoucherRequest;
+import com.example.shop.application.dto.response.VoucherResponse;
+import com.example.shop.application.service.VoucherService;
+import com.example.shop.domain.entity.Voucher;
+import com.example.shop.application.mapper.VoucherMapper;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api")
+@RequiredArgsConstructor
+public class VoucherController {
+
+    private final VoucherService voucherService;
+    private final VoucherMapper voucherMapper;
+
+    @GetMapping("/admin/vouchers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Page<VoucherResponse>>> getAllVouchers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return ResponseEntity
+                .ok(ApiResponse.success(voucherService.getAllVouchers(pageable), "Vouchers retrieved successfully"));
+    }
+
+    @PostMapping("/admin/vouchers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<VoucherResponse>> createVoucher(@Valid @RequestBody VoucherRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(voucherService.createVoucher(request), "Voucher created successfully"));
+    }
+
+    @PutMapping("/admin/vouchers/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<VoucherResponse>> updateVoucher(
+            @PathVariable Long id, @Valid @RequestBody VoucherRequest request) {
+        return ResponseEntity
+                .ok(ApiResponse.success(voucherService.updateVoucher(id, request), "Voucher updated successfully"));
+    }
+
+    @DeleteMapping("/admin/vouchers/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteVoucher(@PathVariable Long id) {
+        voucherService.deleteVoucher(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Voucher deleted successfully"));
+    }
+
+    @GetMapping("/vouchers/validate")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> validateVoucher(
+            @RequestParam String code,
+            @RequestParam(required = false) Long userId,
+            @RequestParam Double orderValue) {
+
+        Voucher voucher = voucherService.validateVoucher(code, userId, orderValue);
+        Double discount = voucherService.calculateDiscount(voucher, orderValue);
+        VoucherResponse response = voucherMapper.toResponse(voucher);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                Map.of(
+                        "voucher", response,
+                        "discount", discount,
+                        "finalAmount", orderValue - discount),
+                "Voucher is valid"));
+    }
+}

@@ -1,0 +1,312 @@
+import { useEffect, useState } from 'react';
+import { Tag, Form, Input, Button, Typography, Radio, Row, Col, Divider, Select, message, Empty, Space } from 'antd';
+import { useNavigate, Link } from 'react-router-dom';
+import { PlusOutlined, EnvironmentOutlined } from '@ant-design/icons';
+import { useCart } from '../../hooks/useCart';
+import { useOrders } from '../../hooks/useOrders';
+import paymentMethodApi from '../../api/paymentMethodApi';
+import addressApi from '../../api/addressApi';
+import voucherApi from '../../api/voucherApi';
+import useAuthStore from '../../store/authStore';
+
+const { Title, Text } = Typography;
+
+const CheckoutPage = () => {
+  const { cart, items, fetchCart } = useCart();
+  const { placeOrder, loading: placingOrder } = useOrders();
+  const [form] = Form.useForm();
+  const navigate = useNavigate();
+  
+  const { user: currentUser } = useAuthStore();
+  
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [addressLoading, setAddressLoading] = useState(false);
+
+  // Voucher state
+  const [voucherCode, setVoucherCode] = useState('');
+  const [discountInfo, setDiscountInfo] = useState(null);
+  const [validatingVoucher, setValidatingVoucher] = useState(false);
+
+  useEffect(() => {
+    fetchCart();
+    
+    // Fetch payment methods
+    const fetchPMs = async () => {
+      try {
+        const res = await paymentMethodApi.getPaymentMethods();
+        const data = res.data || res;
+        setPaymentMethods(data || []);
+        if (data?.length > 0) {
+          form.setFieldValue('paymentMethodId', data[0].id);
+        }
+      } catch (err) {
+        console.error('Failed to load payment methods');
+      }
+    };
+
+    // Fetch addresses
+    const fetchAddresses = async () => {
+      setAddressLoading(true);
+      try {
+        const res = await addressApi.getAddresses();
+        const data = res.data || res;
+        setAddresses(data || []);
+        
+        // Set default address if exists
+        if (data?.length > 0) {
+          const defaultAddr = data.find(a => a.isDefault) || data[0];
+          form.setFieldValue('addressId', defaultAddr.id);
+        }
+      } catch (err) {
+        console.error('Failed to load addresses');
+        message.error('Không thể tải danh sách địa chỉ');
+      } finally {
+        setAddressLoading(false);
+      }
+    };
+
+    fetchPMs();
+    fetchAddresses();
+  }, [fetchCart, form]);
+
+  if (items.length === 0) {
+    return (
+      <div style={{ padding: 100, textAlign: 'center' }}>
+        <Title level={3}>Giỏ hàng đang trống.</Title>
+        <Button type="primary" onClick={() => navigate('/products')}>Quay lại mua sắm</Button>
+      </div>
+    );
+  }
+
+  const handleApplyVoucher = async () => {
+    if (!voucherCode.trim()) {
+      message.warning('Vui lòng nhập mã giảm giá');
+      return;
+    }
+
+    setValidatingVoucher(true);
+    try {
+      const res = await voucherApi.validate({ 
+        code: voucherCode, 
+        userId: currentUser?.id, 
+        orderValue: totalPrice 
+      });
+      const data = res.data || res;
+      setDiscountInfo(data);
+      message.success('Áp dụng mã giảm giá thành công!');
+    } catch (error) {
+      console.error('Voucher validation failed', error);
+      message.error(error.response?.data?.message || 'Mã giảm giá không hợp lệ hoặc đã hết hạn');
+      setDiscountInfo(null);
+    } finally {
+      setValidatingVoucher(false);
+    }
+  };
+
+  const onFinish = async (values) => {
+    if (!values.addressId) {
+      message.warning('Vui lòng chọn hoặc thêm địa chỉ giao hàng');
+      return;
+    }
+
+    try {
+      const orderData = {
+        paymentMethodId: values.paymentMethodId,
+        addressId: values.addressId,
+        note: values.note,
+        voucherCode: discountInfo ? discountInfo.voucher.code : null
+      };
+      
+      await placeOrder(orderData);
+    } catch (error) {
+      // Error is handled in hook (useOrders)
+    }
+  };
+
+  const totalPrice = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+
+  return (
+    <div className="checkout-page">
+      <Title level={2} style={{ marginBottom: 32 }}>Thanh Toán</Title>
+      
+      <Form form={form} layout="vertical" onFinish={onFinish}>
+        <Row gutter={[48, 24]}>
+          <Col xs={24} lg={14}>
+            <div style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #f0f0f0', marginBottom: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <Title level={4} style={{ margin: 0 }}>
+                  <EnvironmentOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+                  Địa chỉ giao hàng
+                </Title>
+                <Link to="/profile">
+                  <Button type="link" icon={<PlusOutlined />}>Thêm địa chỉ mới</Button>
+                </Link>
+              </div>
+
+              {addresses.length > 0 ? (
+                <Form.Item 
+                  name="addressId" 
+                  rules={[{ required: true, message: 'Vui lòng chọn địa chỉ' }]}
+                >
+                  <Select 
+                    placeholder="Chọn địa chỉ giao hàng" 
+                    loading={addressLoading}
+                    size="large"
+                    style={{ width: '100%' }}
+                  >
+                    {addresses.map(addr => (
+                      <Select.Option key={addr.id} value={addr.id}>
+                        <div style={{ padding: '4px 0' }}>
+                          <Text strong>{addr.receiverName} ({addr.receiverPhone})</Text>
+                          <br />
+                          <Text type="secondary" size="small">
+                            {addr.fullAddress}
+                            {addr.isDefault && <Text type="success" style={{ marginLeft: 8 }}>(Mặc định)</Text>}
+                          </Text>
+                        </div>
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              ) : (
+                <Empty 
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description={
+                    <span>Anh chưa có địa chỉ giao hàng nào. <Link to="/profile">Thêm ngay!</Link></span>
+                  }
+                />
+              )}
+              
+              <Form.Item name="note" label="Ghi chú đơn hàng" style={{ marginTop: 24 }}>
+                <Input.TextArea rows={3} placeholder="Ghi chú cho người giao hàng..." />
+              </Form.Item>
+            </div>
+
+            <div style={{ background: '#fff', padding: 24, borderRadius: 12, border: '1px solid #f0f0f0' }}>
+              <Title level={4} style={{ marginBottom: 24 }}>Phương thức thanh toán</Title>
+              <Form.Item name="paymentMethodId" rules={[{ required: true, message: 'Vui lòng chọn phương thức thanh toán' }]}>
+                <Radio.Group style={{ width: '100%' }}>
+                  <Space orientation="vertical" style={{ width: '100%' }}>
+                    {paymentMethods.length > 0 ? paymentMethods.map(pm => (
+                      <Radio key={pm.id} value={pm.id} style={{ 
+                        width: '100%', 
+                        padding: '16px', 
+                        border: '1px solid #f0f0f0', 
+                        borderRadius: '8px',
+                        marginBottom: '8px'
+                      }}>
+                        <Text strong>{pm.name}</Text>
+                        <br />
+                        <Text type="secondary" style={{ fontSize: '12px' }}>{pm.description || 'Thanh toán an toàn'}</Text>
+                      </Radio>
+                    )) : (
+                      <div style={{ padding: 16, background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 8 }}>
+                        Đang tải phương thức thanh toán...
+                      </div>
+                    )}
+                  </Space>
+                </Radio.Group>
+              </Form.Item>
+            </div>
+          </Col>
+
+          <Col xs={24} lg={10}>
+             <div style={{ background: '#fafafa', padding: 32, borderRadius: 12, border: '1px solid #f0f0f0', position: 'sticky', top: 24 }}>
+              <Title level={4}>Chi tiết đơn hàng</Title>
+              <Divider />
+              
+              {items.map(item => (
+                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+                  <Text style={{ flex: 1, paddingRight: 16 }}>
+                    {item.productName} (x{item.quantity})
+                  </Text>
+                  <Text strong>
+                    {new Intl.NumberFormat('vi-VN').format(item.price * item.quantity)}đ
+                  </Text>
+                </div>
+              ))}
+              
+              <Divider />
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                <Text>Tạm tính:</Text>
+                <Text strong>{new Intl.NumberFormat('vi-VN').format(totalPrice)}đ</Text>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                <Text>Phí vận chuyển:</Text>
+                <Text strong>30.000đ</Text>
+              </div>
+
+              {/* Voucher Section */}
+              <div style={{ margin: '20px 0' }}>
+                <Text strong style={{ display: 'block', marginBottom: 8 }}>Mã giảm giá</Text>
+                <Space.Compact style={{ width: '100%' }}>
+                  <Input 
+                    placeholder="Nhập mã voucher..." 
+                    value={voucherCode}
+                    onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                    disabled={!!discountInfo}
+                  />
+                  {!discountInfo ? (
+                    <Button 
+                      type="primary" 
+                      onClick={handleApplyVoucher}
+                      loading={validatingVoucher}
+                    >
+                      Áp dụng
+                    </Button>
+                  ) : (
+                    <Button 
+                      danger 
+                      onClick={() => {
+                        setDiscountInfo(null);
+                        setVoucherCode('');
+                      }}
+                    >
+                      Hủy dùng
+                    </Button>
+                  )}
+                </Space.Compact>
+                {discountInfo && (
+                  <div style={{ marginTop: 8 }}>
+                    <Tag color="green" closable onClose={() => { setDiscountInfo(null); setVoucherCode(''); }}>
+                      Mã: {discountInfo.voucher.code} (Giảm {discountInfo.voucher.type === 'PERCENT' ? `${discountInfo.voucher.value}%` : `${new Intl.NumberFormat('vi-VN').format(discountInfo.voucher.value)}đ`})
+                    </Tag>
+                  </div>
+                )}
+              </div>
+
+              {discountInfo && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
+                  <Text>Giảm giá:</Text>
+                  <Text type="danger" strong>-{new Intl.NumberFormat('vi-VN').format(discountInfo.discount)}đ</Text>
+                </div>
+              )}
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 32, background: '#fff', padding: 16, borderRadius: 8, border: '1px solid #1890ff' }}>
+                <Text strong style={{ fontSize: 16 }}>Tổng thanh toán:</Text>
+                <Title level={3} type="danger" style={{ margin: 0 }}>
+                  {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalPrice + 30000 - (discountInfo?.discount || 0))}
+                </Title>
+              </div>
+
+              <Button 
+                type="primary" 
+                size="large" 
+                htmlType="submit" 
+                block 
+                loading={placingOrder}
+                style={{ height: 50, fontSize: 16, fontWeight: 'bold' }}
+              >
+                XÁC NHẬN ĐẶT HÀNG
+              </Button>
+            </div>
+          </Col>
+        </Row>
+      </Form>
+    </div>
+  );
+};
+
+export default CheckoutPage;
