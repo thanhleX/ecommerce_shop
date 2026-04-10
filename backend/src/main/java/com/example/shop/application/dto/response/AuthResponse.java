@@ -1,0 +1,16 @@
+package com.example.shop.application.dto.response;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class AuthResponse {
+    private String token; // Access Token (15 phút)
+    private String refreshToken; // Refresh Token (7 ngày)
+    private String type;
+    private Long id;
+    private String username;
+    private String email;
+    private String role;
+}
