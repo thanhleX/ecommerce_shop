@@ -141,7 +141,7 @@ public class OrderService {
     }
 
     private void notifyAdmins(String title, String content, NotificationType type) {
-        List<User> admins = userRepository.findByRole_Name("ADMIN");
+        List<User> admins = userRepository.findByRoles_Name("ADMIN");
         for (User admin : admins) {
             notificationService.createNotification(admin.getId(), title, content, type);
         }
@@ -187,9 +187,7 @@ public class OrderService {
         }
 
         // Revert Voucher Usage
-        voucherUsageRepository.findByOrderId(orderId).ifPresent(usage -> {
-            voucherUsageRepository.delete(usage);
-        });
+        voucherUsageRepository.findByOrderId(orderId).ifPresent(voucherUsageRepository::delete);
 
         return orderMapper.toOrderResponse(order, items.stream().map(orderMapper::toOrderItemResponse).toList());
     }

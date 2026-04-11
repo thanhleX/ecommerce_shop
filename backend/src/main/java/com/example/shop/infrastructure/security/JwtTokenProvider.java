@@ -45,13 +45,27 @@ public class JwtTokenProvider {
      * Tạo Access Token từ thông tin Authentication (sau khi đăng nhập thành công)
      */
     public String generateToken(Authentication authentication) {
-        String username = authentication.getName();
-        return buildToken(username, jwtExpirationInMs);
+        com.example.shop.infrastructure.security.CustomUserDetails userDetails = (com.example.shop.infrastructure.security.CustomUserDetails) authentication.getPrincipal();
+        String username = userDetails.getUsername();
+        Long id = userDetails.getId();
+        java.util.List<String> permissions = authentication.getAuthorities().stream()
+                .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                .collect(java.util.stream.Collectors.toList());
+        return buildToken(username, id, permissions, jwtExpirationInMs);
     }
 
-    /** Tạo Access Token mới từ username (dùng khi refresh) */
-    public String generateTokenFromUsername(String username) {
-        return buildToken(username, jwtExpirationInMs);
+    /** Tạo Access Token mới từ username và permissions (dùng khi refresh) */
+    public String generateTokenFromUser(com.example.shop.domain.entity.User user) {
+        java.util.List<String> permissions = new java.util.ArrayList<>();
+        if (user.getRoles() != null) {
+            user.getRoles().forEach(role -> {
+                permissions.add("ROLE_" + role.getName());
+                if (role.getPermissions() != null) {
+                    role.getPermissions().forEach(p -> permissions.add(p.getName()));
+                }
+            });
+        }
+        return buildToken(user.getUsername(), user.getId(), permissions, jwtExpirationInMs);
     }
 
     /**
@@ -78,6 +92,15 @@ public class JwtTokenProvider {
 
     public String getUsernameFromJWT(String token) {
         return parseClaims(token).getSubject();
+    }
+
+    public Long getUserIdFromJWT(String token) {
+        return parseClaims(token).get("id", Long.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    public java.util.List<String> getPermissionsFromJWT(String token) {
+        return parseClaims(token).get("permissions", java.util.List.class);
     }
 
     /**
@@ -112,12 +135,14 @@ public class JwtTokenProvider {
     // Private Helpers
     // ─────────────────────────────────────────────────────────────
 
-    private String buildToken(String username, long expirationMs) {
+    private String buildToken(String username, Long id, java.util.List<String> permissions, long expirationMs) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMs);
 
         return Jwts.builder()
                 .setSubject(username)
+                .claim("id", id)
+                .claim("permissions", permissions)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)

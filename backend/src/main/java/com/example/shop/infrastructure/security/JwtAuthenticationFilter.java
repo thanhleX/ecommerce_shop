@@ -44,7 +44,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
                 String username = tokenProvider.getUsernameFromJWT(jwt);
-                UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+                Long userId = tokenProvider.getUserIdFromJWT(jwt);
+                java.util.List<String> permissions = tokenProvider.getPermissionsFromJWT(jwt);
+                java.util.List<org.springframework.security.core.GrantedAuthority> authorities = 
+                        permissions == null ? new java.util.ArrayList<>() :
+                        permissions.stream().map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
+                        .collect(java.util.stream.Collectors.toList());
+
+                // Bỏ load qua DB để tăng tốc!
+                CustomUserDetails userDetails = new CustomUserDetails(
+                        userId, username, "", true, true, true, true, authorities);
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());

@@ -16,6 +16,7 @@ import {
 import { EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import adminApi from '../../../api/adminApi';
+import usePermission from '../../../hooks/usePermission';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -38,6 +39,7 @@ const StatusFlow = {
 };
 
 const OrderManagePage = () => {
+  const { hasPermission } = usePermission();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
@@ -115,6 +117,15 @@ const OrderManagePage = () => {
       key: 'status',
       render: (status, record) => {
         const nextStatuses = StatusFlow[status] || [];
+        const canUpdateOrder = hasPermission('order:update');
+
+        if (!canUpdateOrder) {
+          return (
+            <Tag color={OrderStatusMap[status].color}>
+              {OrderStatusMap[status].label}
+            </Tag>
+          );
+        }
 
         return (
           <Select

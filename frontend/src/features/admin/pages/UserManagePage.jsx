@@ -1,21 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  Table, 
-  Typography, 
-  Switch, 
-  message, 
-  Tag, 
-  Space, 
-  Avatar, 
-  Card
+import {
+  Table, Typography, Switch, message, Space, Avatar, Card
 } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import adminApi from '../../../api/adminApi';
+import usePermission from '../../../hooks/usePermission';
 
 const { Title, Text } = Typography;
 
 const UserManagePage = () => {
+  const { hasPermission } = usePermission();
+  const canManageCustomer = hasPermission('customer:manage') || hasPermission('user:manage');
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
@@ -23,19 +20,17 @@ const UserManagePage = () => {
   const fetchUsers = useCallback(async (page = 1, pageSize = 10) => {
     setLoading(true);
     try {
-      const response = await adminApi.getUsers({ 
-        page: page - 1, 
-        size: pageSize 
-      });
+      const response = await adminApi.getUsers({ page: page - 1, size: pageSize });
       const data = response.data || response;
-      setUsers(data.content);
-      setPagination({
-        current: page,
-        pageSize: pageSize,
-        total: data.totalElements,
-      });
+
+      const customerList = data.content.filter(u =>
+        !u.roles || u.roles.length === 0 || (u.roles.length === 1 && u.roles[0] === 'ROLE_CUSTOMER')
+      );
+
+      setUsers(customerList);
+      setPagination({ current: page, pageSize: pageSize, total: customerList.length });
     } catch (error) {
-      message.error('Không thể lấy danh sách người dùng');
+      message.error('Không thể lấy danh sách khách hàng');
     } finally {
       setLoading(false);
     }
@@ -48,7 +43,7 @@ const UserManagePage = () => {
   const handleToggleActive = async (id) => {
     try {
       await adminApi.toggleUserActive(id);
-      message.success('Cập nhật trạng thái người dùng thành công');
+      message.success('Cập nhật trạng thái khách hàng thành công');
       fetchUsers(pagination.current);
     } catch (error) {
       message.error(error?.message || 'Lỗi khi cập nhật trạng thái');
@@ -81,48 +76,45 @@ const UserManagePage = () => {
       key: 'email',
     },
     {
-      title: 'Vai trò',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role) => (
-        <Tag color={role === 'ADMIN' ? 'red' : 'blue'}>
-          {role}
-        </Tag>
-      )
-    },
-    {
-      title: 'Ngày tạo',
+      title: 'Ngày tham gia',
       dataIndex: 'createdAt',
       key: 'createdAt',
       render: (date) => dayjs(date).format('DD/MM/YYYY'),
     },
     {
-      title: 'Kích hoạt',
+      title: 'Trạng thái',
       dataIndex: 'isActive',
       key: 'isActive',
-      render: (active, record) => (
-        <Switch 
-          checked={active} 
-          onChange={() => handleToggleActive(record.id)}
-          checkedChildren="Bật"
-          unCheckedChildren="Tắt"
-        />
-      )
+      render: (active, record) => {
+        if (!canManageCustomer) {
+          return <Tag color={active ? 'green' : 'red'}>{active ? 'Bật' : 'Chặn'}</Tag>;
+        }
+        return (
+          <Switch
+            checked={active}
+            onChange={() => handleToggleActive(record.id)}
+            checkedChildren="Bật"
+            unCheckedChildren="Chặn"
+          />
+        );
+      }
     },
   ];
 
   return (
     <div style={{ padding: '24px' }}>
-      <Title level={3} style={{ marginBottom: 24 }}>Quản lý người dùng</Title>
-
-      <Table 
-        columns={columns} 
-        dataSource={users} 
-        rowKey="id" 
-        loading={loading}
-        pagination={pagination}
-        onChange={(p) => fetchUsers(p.current, p.pageSize)}
-      />
+      <Card
+        title={<Title level={3} style={{ marginBottom: 0 }}>Quản lý Khách hàng</Title>}
+      >
+        <Table
+          columns={columns}
+          dataSource={users}
+          rowKey="id"
+          loading={loading}
+          pagination={pagination}
+          onChange={(p) => fetchUsers(p.current, p.pageSize)}
+        />
+      </Card>
     </div>
   );
 };

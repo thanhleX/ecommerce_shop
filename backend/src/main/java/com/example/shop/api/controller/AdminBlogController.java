@@ -32,14 +32,14 @@ public class AdminBlogController {
     // ==================== Blog ====================
 
     @GetMapping("/api/admin/blogs")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('blog:manage')")
     @Operation(summary = "Get all blogs (Admin)")
     public ResponseEntity<ApiResponse<PageResponse<BlogResponse>>> getAllBlogs(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(PageResponse.of(blogService.getAllBlogs(pageable))));
     }
 
     @PostMapping("/api/admin/blogs")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('blog:manage')")
     @Operation(summary = "Create a blog (Admin)")
     public ResponseEntity<ApiResponse<BlogResponse>> createBlog(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -48,7 +48,7 @@ public class AdminBlogController {
     }
 
     @PutMapping("/api/admin/blogs/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('blog:manage')")
     @Operation(summary = "Update a blog (Admin)")
     public ResponseEntity<ApiResponse<BlogResponse>> updateBlog(
             @PathVariable Long id,
@@ -57,7 +57,7 @@ public class AdminBlogController {
     }
 
     @DeleteMapping("/api/admin/blogs/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('blog:manage')")
     @Operation(summary = "Delete a blog (Admin)")
     public ResponseEntity<ApiResponse<Void>> deleteBlog(@PathVariable Long id) {
         blogService.delete(id);
@@ -67,14 +67,14 @@ public class AdminBlogController {
     // ==================== Blog Category ====================
 
     @GetMapping("/api/admin/blog-categories")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('blog:manage')")
     @Operation(summary = "Get all blog categories (Admin)")
     public ResponseEntity<ApiResponse<List<BlogCategoryResponse>>> getAllCategories() {
         return ResponseEntity.ok(ApiResponse.success(blogCategoryService.getAll()));
     }
 
     @PostMapping("/api/admin/blog-categories")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('blog:manage')")
     @Operation(summary = "Create a blog category (Admin)")
     public ResponseEntity<ApiResponse<BlogCategoryResponse>> createCategory(
             @RequestBody @Valid BlogCategoryRequest request) {
@@ -82,7 +82,7 @@ public class AdminBlogController {
     }
 
     @PutMapping("/api/admin/blog-categories/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('blog:manage')")
     @Operation(summary = "Update a blog category (Admin)")
     public ResponseEntity<ApiResponse<BlogCategoryResponse>> updateCategory(
             @PathVariable Long id,
@@ -91,7 +91,7 @@ public class AdminBlogController {
     }
 
     @DeleteMapping("/api/admin/blog-categories/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('blog:manage')")
     @Operation(summary = "Delete a blog category (Admin)")
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long id) {
         blogCategoryService.delete(id);

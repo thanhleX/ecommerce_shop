@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
 @Tag(name = "Cart", description = "Cart management APIs")
-@PreAuthorize("hasRole('CUSTOMER')")
+@PreAuthorize("hasAuthority('ROLE_CUSTOMER')")
 public class CartController {
 
     private final CartService cartService;

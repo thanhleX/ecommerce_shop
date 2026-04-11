@@ -26,6 +26,8 @@ import OrderManagePage from './features/admin/pages/OrderManagePage';
 import BlogManagePage from './features/admin/pages/BlogManagePage';
 import VoucherManagePage from './features/admin/pages/VoucherManagePage';
 import UserManagePage from './features/admin/pages/UserManagePage';
+import StaffManagePage from './features/admin/pages/StaffManagePage';
+import RoleManagePage from './features/admin/pages/RoleManagePage';
 
 function App() {
   return (
@@ -68,6 +70,8 @@ function App() {
             <Route path="categories" element={<CategoryManagePage />} />
             <Route path="orders" element={<OrderManagePage />} />
             <Route path="users" element={<UserManagePage />} />
+            <Route path="staff" element={<StaffManagePage />} />
+            <Route path="roles" element={<RoleManagePage />} />
             <Route path="blogs" element={<BlogManagePage />} />
             <Route path="vouchers" element={<VoucherManagePage />} />
           </Route>
