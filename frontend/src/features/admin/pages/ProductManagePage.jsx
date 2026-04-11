@@ -30,12 +30,15 @@ import {
 import productApi from '../../../api/productApi';
 import categoryApi from '../../../api/categoryApi';
 import fileApi from '../../../api/fileApi';
+import usePermission from '../../../hooks/usePermission';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
 const ProductManagePage = () => {
+  const { hasPermission } = usePermission();
+
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -152,6 +155,10 @@ const ProductManagePage = () => {
     return result;
   };
 
+  const canCreate = hasPermission('product:create');
+  const canUpdate = hasPermission('product:update');
+  const canDelete = hasPermission('product:delete');
+
   const columns = [
     {
       title: 'Tên sản phẩm',
@@ -188,21 +195,25 @@ const ProductManagePage = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Button 
-            type="primary" 
-            ghost 
-            icon={<EditOutlined />} 
-            onClick={() => handleEdit(record)}
-          />
-          <Popconfirm
-            title="Sản phẩm này sẽ được ẩn đi. Tiếp tục?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
-            okButtonProps={{ danger: true }}
-          >
-            <Button type="primary" danger ghost icon={<DeleteOutlined />} />
-          </Popconfirm>
+          {canUpdate && (
+            <Button 
+              type="primary" 
+              ghost 
+              icon={<EditOutlined />} 
+              onClick={() => handleEdit(record)}
+            />
+          )}
+          {canDelete && (
+            <Popconfirm
+              title="Sản phẩm này sẽ được ẩn đi. Tiếp tục?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Xóa"
+              cancelText="Hủy"
+              okButtonProps={{ danger: true }}
+            >
+              <Button type="primary" danger ghost icon={<DeleteOutlined />} />
+            </Popconfirm>
+          )}
         </Space>
       ),
     },
@@ -213,18 +224,11 @@ const ProductManagePage = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <Title level={3}>Quản lý sản phẩm</Title>
         <Space>
-          <Select 
-            placeholder="Lọc trạng thái" 
-            style={{ width: 150 }} 
-            allowClear
-            onChange={(val) => setFilterStatus(val)}
-          >
-            <Option value={true}>Đang bán</Option>
-            <Option value={false}>Ngừng bán</Option>
-          </Select>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            Thêm sản phẩm
-          </Button>
+          {canCreate && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+              Thêm sản phẩm
+            </Button>
+          )}
         </Space>
       </div>
 

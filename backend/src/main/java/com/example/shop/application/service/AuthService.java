@@ -64,12 +64,15 @@ public class AuthService {
         Role userRole = roleRepository.findByName("CUSTOMER")
                 .orElseThrow(() -> new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION));
 
+        java.util.Set<Role> roles = new java.util.HashSet<>();
+        roles.add(userRole);
+
         User user = User.builder()
                 .username(request.getUsername())
                 .fullName(request.getFullName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(userRole)
+                .roles(roles)
                 .isActive(true)
                 .build();
 
@@ -128,7 +131,7 @@ public class AuthService {
 
         // 3. Tạo Access Token mới (không thay Refresh Token)
         User user = refreshToken.getUser();
-        String newAccessToken = tokenProvider.generateTokenFromUsername(user.getUsername());
+        String newAccessToken = tokenProvider.generateTokenFromUser(user);
 
         return AuthResponse.builder()
                 .token(newAccessToken)
@@ -137,7 +140,7 @@ public class AuthService {
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .role(user.getRole().getName())
+                .role(user.getRoles().stream().map(Role::getName).collect(java.util.stream.Collectors.joining(",")))
                 .build();
     }
 
@@ -205,6 +208,11 @@ public class AuthService {
     }
 
     private AuthResponse buildAuthResponse(String accessToken, String refreshToken, User user) {
+        // Extract all roles to comma-separated string for backwards compatibility payload
+        String rolesStr = user.getRoles().stream()
+                .map(Role::getName)
+                .collect(java.util.stream.Collectors.joining(","));
+                
         return AuthResponse.builder()
                 .token(accessToken)
                 .refreshToken(refreshToken)
@@ -212,7 +220,7 @@ public class AuthService {
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .role(user.getRole().getName())
+                .role(rolesStr)
                 .build();
     }
 }

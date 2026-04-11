@@ -30,8 +30,20 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         List<GrantedAuthority> authorities = new java.util.ArrayList<>();
 
-        // Add the role itself as an authority (e.g. ROLE_CUSTOMER, ROLE_ADMIN)
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
+        // Add roles and permissions as authorities
+        if (user.getRoles() != null) {
+            user.getRoles().forEach(role -> {
+                // Keep the ROLE_ prefix for backwards compatibility
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+                
+                // Add permissions
+                if (role.getPermissions() != null) {
+                    role.getPermissions().forEach(permission -> {
+                        authorities.add(new SimpleGrantedAuthority(permission.getName()));
+                    });
+                }
+            });
+        }
 
         return new CustomUserDetails(
                 user.getId(),

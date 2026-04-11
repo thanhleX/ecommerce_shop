@@ -15,11 +15,13 @@ import {
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import categoryApi from '../../../api/categoryApi';
+import usePermission from '../../../hooks/usePermission';
 
 const { Title } = Typography;
 const { Option } = Select;
 
 const CategoryManagePage = () => {
+  const { hasPermission } = usePermission();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -124,21 +126,25 @@ const CategoryManagePage = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
-          <Button 
-            type="primary" 
-            ghost 
-            icon={<EditOutlined />} 
-            onClick={() => handleEdit(record)}
-          />
-          <Popconfirm
-            title="Bạn có chắc chắn muốn xóa?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
-            okButtonProps={{ danger: true }}
-          >
-            <Button type="primary" danger ghost icon={<DeleteOutlined />} />
-          </Popconfirm>
+          {hasPermission('category:manage') && (
+            <>
+              <Button 
+                type="primary" 
+                ghost 
+                icon={<EditOutlined />} 
+                onClick={() => handleEdit(record)}
+              />
+              <Popconfirm
+                title="Bạn có chắc chắn muốn xóa?"
+                onConfirm={() => handleDelete(record.id)}
+                okText="Xóa"
+                cancelText="Hủy"
+                okButtonProps={{ danger: true }}
+              >
+                <Button type="primary" danger ghost icon={<DeleteOutlined />} />
+              </Popconfirm>
+            </>
+          )}
         </Space>
       ),
     },
@@ -148,9 +154,11 @@ const CategoryManagePage = () => {
     <div style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <Title level={3}>Quản lý danh mục</Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          Thêm danh mục
-        </Button>
+        {hasPermission('category:manage') && (
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            Thêm danh mục
+          </Button>
+        )}
       </div>
 
       <Table 

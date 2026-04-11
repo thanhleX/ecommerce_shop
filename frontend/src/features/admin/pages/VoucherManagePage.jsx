@@ -23,12 +23,14 @@ import {
   DeleteOutlined 
 } from '@ant-design/icons';
 import voucherApi from '../../../api/voucherApi';
+import usePermission from '../../../hooks/usePermission';
 import dayjs from 'dayjs';
 
 const { Title } = Typography;
 const { Option } = Select;
 
 const VoucherManagePage = () => {
+  const { hasPermission } = usePermission();
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -169,22 +171,20 @@ const VoucherManagePage = () => {
       title: 'Hành động',
       key: 'action',
       render: (_, record) => (
-        <Space size="middle">
-          <Button 
-            type="primary" 
-            ghost 
-            icon={<EditOutlined />} 
-            onClick={() => handleEdit(record)}
-          />
-          <Popconfirm
-            title="Xóa voucher này? Hành động này không thể hoàn tác."
-            onConfirm={() => handleDelete(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
-            okButtonProps={{ danger: true }}
-          >
-            <Button type="primary" danger ghost icon={<DeleteOutlined />} />
-          </Popconfirm>
+        <Space>
+          {hasPermission('voucher:manage') && (
+            <>
+              <Button type="primary" ghost icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+              <Popconfirm
+                title="Dừng hoạt động voucher này?"
+                onConfirm={() => handleDelete(record.id)}
+                okText="Dừng"
+                cancelText="Hủy"
+              >
+                <Button type="primary" danger ghost icon={<DeleteOutlined />} />
+              </Popconfirm>
+            </>
+          )}
         </Space>
       ),
     },
@@ -194,9 +194,11 @@ const VoucherManagePage = () => {
     <div style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <Title level={3}>Quản lý Voucher / Coupon</Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          Thêm Voucher
-        </Button>
+        {hasPermission('voucher:manage') && (
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            Thêm Voucher
+          </Button>
+        )}
       </div>
 
       <Table 

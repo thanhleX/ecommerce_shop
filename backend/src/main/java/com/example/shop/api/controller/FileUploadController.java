@@ -16,7 +16,7 @@ public class FileUploadController {
     private final CloudinaryService cloudinaryService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('product:create') or hasAuthority('product:update') or hasAuthority('blog:manage')")
     public ResponseEntity<ApiResponse<String>> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
             if (file.isEmpty()) {

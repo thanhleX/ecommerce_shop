@@ -31,7 +31,7 @@ public class DashboardService {
     @Transactional(readOnly = true)
     public DashboardStatsResponse getStats() {
         long totalOrders = orderRepository.count();
-        long totalUsers = userRepository.countByRole_NameNot("ADMIN");
+        long totalUsers = userRepository.countByRoles_Name("CUSTOMER");
         long totalProducts = productRepository.count();
 
         // 1. Tổng doanh thu (tất cả COMPLETED)

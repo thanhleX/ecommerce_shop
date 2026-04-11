@@ -28,7 +28,7 @@ public class VoucherController {
     private final VoucherMapper voucherMapper;
 
     @GetMapping("/admin/vouchers")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('voucher:manage')")
     public ResponseEntity<ApiResponse<Page<VoucherResponse>>> getAllVouchers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -42,14 +42,14 @@ public class VoucherController {
     }
 
     @PostMapping("/admin/vouchers")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('voucher:manage')")
     public ResponseEntity<ApiResponse<VoucherResponse>> createVoucher(@Valid @RequestBody VoucherRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(voucherService.createVoucher(request), "Voucher created successfully"));
     }
 
     @PutMapping("/admin/vouchers/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('voucher:manage')")
     public ResponseEntity<ApiResponse<VoucherResponse>> updateVoucher(
             @PathVariable Long id, @Valid @RequestBody VoucherRequest request) {
         return ResponseEntity
@@ -57,7 +57,7 @@ public class VoucherController {
     }
 
     @DeleteMapping("/admin/vouchers/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('voucher:manage')")
     public ResponseEntity<ApiResponse<Void>> deleteVoucher(@PathVariable Long id) {
         voucherService.deleteVoucher(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Voucher deleted successfully"));

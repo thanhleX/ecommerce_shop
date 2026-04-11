@@ -19,6 +19,7 @@ import useNotificationStore from '../../store/notificationStore';
 import { useAuth } from '../../hooks/useAuth';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import notificationApi from '../../api/notificationApi';
+import usePermission from '../../hooks/usePermission';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -111,15 +112,22 @@ const AdminLayout = () => {
     </div>
   );
 
+  const { hasPermission } = usePermission();
+
+  const isSystemAdmin = user?.roles?.some(r => ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'].includes(r));
+
   const menuItems = [
     { key: '/admin', icon: <DashboardOutlined />, label: <Link to="/admin">Thống kê</Link> },
-    { key: '/admin/orders', icon: <ShoppingOutlined />, label: <Link to="/admin/orders">Đơn hàng</Link> },
-    { key: '/admin/products', icon: <AppstoreOutlined />, label: <Link to="/admin/products">Sản phẩm</Link> },
-    { key: '/admin/categories', icon: <AppstoreOutlined />, label: <Link to="/admin/categories">Danh mục</Link> },
-    { key: '/admin/vouchers', icon: <DollarCircleOutlined />, label: <Link to="/admin/vouchers">Vouchers</Link> },
-    { key: '/admin/blogs', icon: <FileTextOutlined />, label: <Link to="/admin/blogs">Bài viết</Link> },
-    { key: '/admin/users', icon: <UserOutlined />, label: <Link to="/admin/users">Người dùng</Link> },
-  ];
+    hasPermission('order:read') && { key: '/admin/orders', icon: <ShoppingOutlined />, label: <Link to="/admin/orders">Đơn hàng</Link> },
+    hasPermission('product:read') && { key: '/admin/products', icon: <AppstoreOutlined />, label: <Link to="/admin/products">Sản phẩm</Link> },
+    hasPermission('category:manage') && { key: '/admin/categories', icon: <AppstoreOutlined />, label: <Link to="/admin/categories">Danh mục</Link> },
+    hasPermission('voucher:manage') && { key: '/admin/vouchers', icon: <DollarCircleOutlined />, label: <Link to="/admin/vouchers">Vouchers</Link> },
+    hasPermission('blog:manage') && { key: '/admin/blogs', icon: <FileTextOutlined />, label: <Link to="/admin/blogs">Bài viết</Link> },
+    // Chỉ Admin mới được thấy quản lý nhân sự và phân quyền
+    isSystemAdmin && hasPermission('staff:manage') && { key: '/admin/staff', icon: <UserOutlined />, label: <Link to="/admin/staff">Nhân viên</Link> },
+    hasPermission('customer:manage') && { key: '/admin/users', icon: <UserOutlined />, label: <Link to="/admin/users">Khách hàng</Link> },
+    isSystemAdmin && hasPermission('role:read') && { key: '/admin/roles', icon: <SettingOutlined />, label: <Link to="/admin/roles">Phân quyền</Link> },
+  ].filter(Boolean);
 
   const userMenuItems = [
     { key: 'profile', label: 'Tài khoản', icon: <UserOutlined /> },

@@ -7,23 +7,40 @@ const AdminRoute = () => {
   const { isAuthenticated, user } = useAuthStore();
   const navigate = useNavigate();
 
+  // dark mode of Chrome
+  const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
   // Redirect to admin login if not logged in at all
   if (!isAuthenticated) {
     return <Navigate to="/admin/login" replace />;
   }
 
-  // Very basic RBAC check
-  // Phụ thuộc vào dữ liệu user trả về từ backend (ví dụ user.roles === ['ADMIN'] hoặc user.role === 'ADMIN')
-  // Ở đây giả định user có thuộc tính roles là mảng chứa 'ROLE_ADMIN' hoặc 'ADMIN'
-  const isAdmin = user?.roles?.includes('ADMIN') || user?.roles?.includes('ROLE_ADMIN') || user?.role === 'ADMIN';
+  // Hệ thống RBAC: Cho phép vào Admin nếu:
+  // 1. Có role ADMIN/SUPER_ADMIN/STAFF (với tiền tố ROLE_)
+  // 2. HOẶC sở hữu bất kỳ quyền quản trị nào (permissions không trống)
+  const isStaffOrAdmin = user?.roles?.some(r =>
+    ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN', 'ROLE_STAFF'].includes(r)
+  ) || (user?.permissions && user.permissions.length > 0);
 
-  if (!isAdmin) {
+  if (!isStaffOrAdmin) {
     return (
       <Result
         status="403"
-        title="403 Không có quyền"
-        subTitle="Xin lỗi, bạn không có quyền truy cập vào trang quản trị."
-        extra={<Button type="primary" onClick={() => navigate('/')}>Quay lại trang chủ</Button>}
+        title={
+          <span style={{ color: isDarkMode ? '#fff' : '#000' }}>
+            403 Không có quyền
+          </span>
+        }
+        subTitle={
+          <span style={{ color: isDarkMode ? '#aaa' : '#555' }}>
+            Xin lỗi, bạn không có quyền truy cập vào trang quản trị.
+          </span>
+        }
+        extra={
+          <Button type="primary" onClick={() => navigate('/')}>
+            Quay lại trang chủ
+          </Button>
+        }
       />
     );
   }

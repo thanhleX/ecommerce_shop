@@ -19,7 +19,7 @@ public class AdminDashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping("/api/admin/dashboard")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('order:read') or hasAuthority('product:read')")
     @Operation(summary = "Get admin dashboard stats (Admin)")
     public ResponseEntity<ApiResponse<DashboardStatsResponse>> getDashboard() {
         return ResponseEntity.ok(ApiResponse.success(dashboardService.getStats()));

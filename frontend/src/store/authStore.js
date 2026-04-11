@@ -12,10 +12,34 @@ const getInitialUser = () => {
   }
 };
 
+// Helper function to safely parse JWT
+const parseJwt = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+};
+
+const getInitialPermissions = () => {
+  const token = getInitialToken();
+  if (token) {
+    const decoded = parseJwt(token);
+    return decoded?.permissions || [];
+  }
+  return [];
+};
+
 const useAuthStore = create((set) => ({
   user: getInitialUser(),
   token: getInitialToken(),
   refreshToken: getInitialRefreshToken(),
+  permissions: getInitialPermissions(),
   isAuthenticated: !!getInitialToken(),
 
   login: (user, token, refreshToken) => {
@@ -24,18 +48,25 @@ const useAuthStore = create((set) => ({
     localStorage.setItem('refreshToken', refreshToken);
     localStorage.setItem('user', JSON.stringify(user));
 
+    // Extract permissions
+    const decoded = parseJwt(token);
+    const permissions = decoded?.permissions || [];
+
     // Update state
     set({
       user,
       token,
       refreshToken,
+      permissions,
       isAuthenticated: true,
     });
   },
 
   setToken: (token) => {
     localStorage.setItem('token', token);
-    set({ token });
+    const decoded = parseJwt(token);
+    const permissions = decoded?.permissions || [];
+    set({ token, permissions });
   },
 
   logout: () => {
@@ -49,6 +80,7 @@ const useAuthStore = create((set) => ({
       user: null,
       token: null,
       refreshToken: null,
+      permissions: [],
       isAuthenticated: false,
     });
   },

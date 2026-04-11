@@ -25,6 +25,8 @@ import {
 } from '@ant-design/icons';
 import adminApi from '../../../api/adminApi';
 import axiosClient from '../../../api/axiosClient';
+import blogApi from '../../../api/blogApi';
+import usePermission from '../../../hooks/usePermission';
 import fileApi from '../../../api/fileApi';
 
 const { Title } = Typography;
@@ -53,6 +55,7 @@ const generateSlug = (title) => {
 };
 
 const BlogManagePage = () => {
+  const { hasPermission } = usePermission();
   const [blogs, setBlogs] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -210,22 +213,20 @@ const BlogManagePage = () => {
       title: 'Hành động',
       key: 'action',
       render: (_, record) => (
-        <Space size="middle">
-          <Button 
-            type="primary" 
-            ghost 
-            icon={<EditOutlined />} 
-            onClick={() => handleEdit(record)}
-          />
-          <Popconfirm
-            title="Bạn có chắc chắn muốn xóa bài viết này?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
-            okButtonProps={{ danger: true }}
-          >
-            <Button type="primary" danger ghost icon={<DeleteOutlined />} />
-          </Popconfirm>
+        <Space>
+          {hasPermission('blog:manage') && (
+            <>
+              <Button type="primary" ghost icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+              <Popconfirm
+                title="Xóa bài viết này?"
+                onConfirm={() => handleDelete(record.id)}
+                okText="Xóa"
+                cancelText="Hủy"
+              >
+                <Button type="primary" danger ghost icon={<DeleteOutlined />} />
+              </Popconfirm>
+            </>
+          )}
         </Space>
       ),
     },
@@ -235,9 +236,11 @@ const BlogManagePage = () => {
     <div style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <Title level={3}>Quản lý bài viết</Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          Viết bài mới
-        </Button>
+        {hasPermission('blog:manage') && (
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            Viết bài mới
+          </Button>
+        )}
       </div>
 
       <Table 
