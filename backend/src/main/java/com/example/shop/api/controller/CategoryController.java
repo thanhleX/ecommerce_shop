@@ -27,6 +27,13 @@ public class CategoryController {
                 ApiResponse.success(categoryService.getCategoryTree(activeOnly), "Categories retrieved successfully"));
     }
 
+    @GetMapping("/categories/all")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories(
+            @RequestParam(required = false) Boolean activeOnly) {
+        return ResponseEntity.ok(
+                ApiResponse.success(categoryService.getAllCategories(activeOnly), "All categories retrieved successfully"));
+    }
+
     @GetMapping("/categories/{id}")
     public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryById(@PathVariable Long id) {
         return ResponseEntity

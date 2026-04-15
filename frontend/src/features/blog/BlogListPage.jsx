@@ -40,9 +40,13 @@ const BlogListPage = () => {
   return (
     <div>
       <Title level={2} style={{ textAlign: 'center', marginBottom: 40 }}>Tin Tức & Khuyến Mãi</Title>
-      
+
       {loading ? (
         <div style={{ textAlign: 'center', padding: 80 }}><Spin size="large" /></div>
+      ) : blogs.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 80 }}>
+          <Text type="secondary">Chưa có bài viết nào</Text>
+        </div>
       ) : (
         <>
           <Row gutter={[24, 32]}>
@@ -73,13 +77,13 @@ const BlogListPage = () => {
           </Row>
 
           <div style={{ textAlign: 'center', marginTop: 40 }}>
-             <Pagination 
-                current={pagination.current} 
-                pageSize={pagination.pageSize} 
-                total={pagination.total} 
-                onChange={handlePageChange}
-                showSizeChanger={false}
-              />
+            <Pagination
+              current={pagination.current}
+              pageSize={pagination.pageSize}
+              total={pagination.total}
+              onChange={handlePageChange}
+              showSizeChanger={false}
+            />
           </div>
         </>
       )}

@@ -36,41 +36,56 @@ export const useWebSocket = () => {
 
     client.onConnect = () => {
       console.log('Connected to WebSocket');
-      
-      // Subscribe to user's notification topic
-      client.subscribe(`/topic/notifications/${user.id}`, (message) => {
+
+      if (!user?.roles) return;
+
+      // Subscribe to role-based topics (for Admin/Staff)
+      user.roles.forEach(role => {
+        const topic = `/topic/notifications/role/${role}`;
+        console.log("Subscribe role topic:", topic);
+
+        client.subscribe(topic, (message) => {
+          if (message.body) {
+            handleNewNotification(JSON.parse(message.body));
+          }
+        });
+      });
+
+      // Subscribe to personal topic (for Customer)
+      const userTopic = `/topic/notifications/user/${user.id}`;
+      console.log("Subscribe user topic:", userTopic);
+      client.subscribe(userTopic, (message) => {
         if (message.body) {
-          const notif = JSON.parse(message.body);
-          
-          // Thêm vào store
-          addNotification(notif);
-          
-          // Hiển thị toast popup
-          notification.open({
-            message: notif.title,
-            description: notif.content,
-            placement: 'bottomRight',
-            type: 'info',
-            duration: 5
-          });
+          handleNewNotification(JSON.parse(message.body));
         }
       });
     };
 
-    client.onStompError = (frame) => {
-      console.error('Broker reported error: ' + frame.headers['message']);
-      console.error('Additional details: ' + frame.body);
+    const handleNewNotification = (notif) => {
+      addNotification(notif);
+      notification.open({
+        message: notif.title,
+        description: notif.content,
+        placement: 'bottomRight',
+        duration: 5
+      });
     };
 
-    client.activate();
-    clientRef.current = client;
 
-    return () => {
-      if (clientRef.current) {
-        clientRef.current.deactivate();
-      }
-    };
-  }, [user, token, addNotification]);
+  client.onStompError = (frame) => {
+    console.error('Broker reported error: ' + frame.headers['message']);
+    console.error('Additional details: ' + frame.body);
+  };
 
-  return { client: clientRef.current };
+  client.activate();
+  clientRef.current = client;
+
+  return () => {
+    if (clientRef.current) {
+      clientRef.current.deactivate();
+    }
+  };
+}, [user, token, addNotification]);
+
+return { client: clientRef.current };
 };

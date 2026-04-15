@@ -4,34 +4,20 @@ import { useState, useEffect, useMemo } from 'react';
 const { Title, Text } = Typography;
 
 const ProductFilter = ({
-  categories = [],
+  categories = [], // This is now already the categoryTree from parent
   selectedCategories = [],
   priceRange = [0, 3000000],
   onFilterChange
 }) => {
   const [localPrice, setLocalPrice] = useState(priceRange);
 
-  const categoryTree = useMemo(() => {
-    const map = {};
-    const tree = [];
-    categories.forEach(cat => map[cat.id] = { ...cat, children: [] });
-    categories.forEach(cat => {
-      if (cat.parentId && map[cat.parentId]) {
-        map[cat.parentId].children.push(map[cat.id]);
-      } else if (!cat.parentId) {
-        tree.push(map[cat.id]);
-      }
-    });
-    return tree;
-  }, [categories]);
-
   const activeParentKey = useMemo(() => {
-    const activeParent = categoryTree.find(parent =>
+    const activeParent = categories.find(parent =>
       selectedCategories.includes(parent.id) ||
-      parent.children.some(child => selectedCategories.includes(child.id))
+      (parent.children && parent.children.some(child => selectedCategories.includes(child.id)))
     );
     return activeParent ? activeParent.id.toString() : null;
-  }, [categoryTree, selectedCategories]);
+  }, [categories, selectedCategories]);
 
   useEffect(() => {
     setLocalPrice(priceRange);
@@ -39,7 +25,7 @@ const ProductFilter = ({
 
   const toggleCategory = (id) => {
     let newSelected = [...selectedCategories];
-    const isEditingParent = categoryTree.find(p => p.id === id);
+    const isEditingParent = categories.find(p => p.id === id);
 
     if (newSelected.includes(id)) {
       // Uncheck
@@ -50,7 +36,7 @@ const ProductFilter = ({
         newSelected = newSelected.filter(item => !childIds.includes(item));
       } else {
         // If unchecking a child, also uncheck its parent just in case
-        const parent = categoryTree.find(p => p.children.some(c => c.id === id));
+        const parent = categories.find(p => p.children.some(c => c.id === id));
         if (parent) {
           newSelected = newSelected.filter(item => item !== parent.id);
         }
@@ -67,7 +53,7 @@ const ProductFilter = ({
         });
       } else {
         // If checking a child, check if all children are checked
-        const parent = categoryTree.find(p => p.children.some(c => c.id === id));
+        const parent = categories.find(p => p.children.some(c => c.id === id));
         if (parent) {
           const allChildrenChecked = parent.children.every(c => newSelected.includes(c.id));
           if (allChildrenChecked && !newSelected.includes(parent.id)) {
@@ -88,7 +74,7 @@ const ProductFilter = ({
   };
 
   // 🔥 NEW: items thay cho Panel
-  const collapseItems = categoryTree.map(parent => ({
+  const collapseItems = categories.map(parent => ({
     key: parent.id.toString(),
     label: (
       <div

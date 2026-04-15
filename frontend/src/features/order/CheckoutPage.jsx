@@ -159,7 +159,7 @@ const CheckoutPage = () => {
                     {addresses.map(addr => (
                       <Select.Option key={addr.id} value={addr.id}>
                         <div style={{ padding: '4px 0' }}>
-                          <Text strong>{addr.receiverName} ({addr.receiverPhone})</Text>
+                          <Text strong>{addr.receiverName} ({addr.phone})</Text>
                           <br />
                           <Text type="secondary" size="small">
                             {addr.fullAddress}

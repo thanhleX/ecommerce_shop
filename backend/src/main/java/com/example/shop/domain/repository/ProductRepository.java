@@ -14,12 +14,12 @@ import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByCategory(Category category, Pageable pageable);
-    
+
     @Query("SELECT DISTINCT p FROM Product p LEFT JOIN p.variants v " +
-           "WHERE (COALESCE(:categoryIds, NULL) IS NULL OR p.category.id IN :categoryIds) " +
-           "AND (:minPrice IS NULL OR v.price >= :minPrice) " +
-           "AND (:maxPrice IS NULL OR v.price <= :maxPrice) " +
-           "AND (:isActive IS NULL OR p.isActive = :isActive)")
+            "WHERE (COALESCE(:categoryIds, NULL) IS NULL OR p.category.id IN :categoryIds) " +
+            "AND (:minPrice IS NULL OR v.price >= :minPrice) " +
+            "AND (:maxPrice IS NULL OR v.price <= :maxPrice) " +
+            "AND (:isActive IS NULL OR p.isActive = :isActive)")
     Page<Product> findByFilters(
             @Param("categoryIds") List<Long> categoryIds,
             @Param("minPrice") BigDecimal minPrice,
@@ -28,6 +28,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             Pageable pageable);
 
     boolean existsBySlug(String slug);
+
     Optional<Product> findBySlug(String slug);
 
     @Query(value = "SELECT * FROM products WHERE is_active = true ORDER BY RAND() LIMIT 4", nativeQuery = true)

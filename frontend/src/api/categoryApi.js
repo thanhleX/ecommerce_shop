@@ -5,6 +5,10 @@ const categoryApi = {
     return axiosClient.get('/categories', { params });
   },
 
+  getAllCategories(params) {
+    return axiosClient.get('/categories/all', { params });
+  },
+
   getById(id) {
     return axiosClient.get(`/categories/${id}`);
   },
