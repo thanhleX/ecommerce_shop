@@ -19,7 +19,7 @@ const ProductListPage = () => {
   useEffect(() => {
     const fetchCats = async () => {
       try {
-        const res = await categoryApi.getCategories();
+        const res = await categoryApi.getAllCategories({ activeOnly: true });
         setCategories(res.data || res);
       } catch (err) {
         console.error('Failed to fetch categories:', err);

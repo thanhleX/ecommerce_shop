@@ -70,14 +70,28 @@ public class DataSeeder implements CommandLineRunner {
             userRepository.save(superAdmin);
             log.info("Super Admin has been created successfully (username: superadmin, password: superadmin).");
         } else {
-            // Optional: Ensure the existing superadmin always has the most updated all_permissions
-            Role superAdminRole = roleRepository.findByName("SUPER_ADMIN").orElse(null);
-            
-            if (superAdminRole != null) {
+            Role adminRole = roleRepository.findByName("SUPER_ADMIN").orElse(null);
+
+            if (adminRole != null) {
                 List<Permission> allPermissions = permissionRepository.findAll();
-                superAdminRole.setPermissions(new HashSet<>(allPermissions));
-                roleRepository.save(superAdminRole);
-                log.info("Super Admin permissions updated with the latest permissions.");
+
+                Set<Permission> currentPermissions = adminRole.getPermissions();
+                Set<Permission> newPermissions = new HashSet<>(currentPermissions);
+
+                for (Permission p : allPermissions) {
+                    if (!currentPermissions.contains(p)) {
+                        newPermissions.add(p);
+                    }
+                }
+
+                // chỉ save nếu có thay đổi
+                if (newPermissions.size() != currentPermissions.size()) {
+                    adminRole.setPermissions(newPermissions);
+                    roleRepository.save(adminRole);
+                    log.info("Added missing permissions to SUPER_ADMIN.");
+                } else {
+                    log.info("SUPER_ADMIN permissions already up to date.");
+                }
             }
         }
     }

@@ -130,8 +130,12 @@ public class OrderService {
         order.setFinalAmount(finalAmount);
         orderRepository.save(order);
 
-        // Notify Admins about new order
-        notifyAdmins("Đơn hàng mới", "Có đơn hàng mới #" + order.getId() + " từ " + user.getFullName(), NotificationType.ORDER);
+        // Notify Management about new order
+        notificationService.notifyManagement(
+                "Đơn hàng mới",
+                "Có đơn hàng mới #" + order.getId() + " từ " + user.getFullName(),
+                NotificationType.ORDER
+        );
 
         // Clear cart
         cartItemRepository.deleteAll(cartItems);
@@ -140,12 +144,6 @@ public class OrderService {
         return orderMapper.toOrderResponse(order, savedItems.stream().map(orderMapper::toOrderItemResponse).toList());
     }
 
-    private void notifyAdmins(String title, String content, NotificationType type) {
-        List<User> admins = userRepository.findByRoles_Name("ADMIN");
-        for (User admin : admins) {
-            notificationService.createNotification(admin.getId(), title, content, type);
-        }
-    }
 
     @Transactional(readOnly = true)
     public Page<OrderResponse> getOrders(Long userId, Pageable pageable) {
@@ -176,8 +174,12 @@ public class OrderService {
         order.setStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
 
-        // Notify Admins about cancellation
-        notifyAdmins("Đơn hàng bị khách hủy", "Đơn hàng #" + orderId + " đã bị khách hàng " + order.getUser().getFullName() + " hủy.", NotificationType.ORDER);
+        // Notify Management about cancellation
+        notificationService.notifyManagement(
+                "Đơn hàng bị khách hủy", 
+                "Đơn hàng #" + orderId + " đã bị khách hàng " + order.getUser().getFullName() + " hủy.", 
+                NotificationType.ORDER
+        );
 
         // Restore stock
         List<OrderItem> items = orderItemRepository.findByOrder(order);
@@ -226,6 +228,13 @@ public class OrderService {
                 "Cập nhật đơn hàng",
                 statusMsg,
                 NotificationType.ORDER);
+
+        // Notify Management about status update
+        notificationService.notifyManagement(
+                "Cập nhật đơn hàng #" + orderId,
+                "Trạng thái đơn hàng đã được thay đổi thành: " + status.name(),
+                NotificationType.ORDER
+        );
 
         List<OrderItem> items = orderItemRepository.findByOrder(order);
         return orderMapper.toOrderResponse(order, items.stream().map(orderMapper::toOrderItemResponse).toList());

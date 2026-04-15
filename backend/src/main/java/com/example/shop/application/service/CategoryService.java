@@ -36,12 +36,25 @@ public class CategoryService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public List<CategoryResponse> getAllCategories(Boolean activeOnly) {
+        List<Category> categories;
+        if (Boolean.TRUE.equals(activeOnly)) {
+            categories = categoryRepository.findAll().stream()
+                    .filter(c -> Boolean.TRUE.equals(c.getIsActive()))
+                    .toList();
+        } else {
+            categories = categoryRepository.findAll();
+        }
+        return categoryMapper.toCategoryResponseList(categories);
+    }
+
     private CategoryResponse toCategoryResponse(Category category, boolean activeOnly) {
         if (category == null) return null;
         if (activeOnly && !Boolean.TRUE.equals(category.getIsActive())) {
             return null;
         }
-        
+
         CategoryResponse response = categoryMapper.toCategoryResponse(category);
         if (category.getChildren() != null) {
             List<CategoryResponse> mappedChildren = category.getChildren().stream()
@@ -122,14 +135,14 @@ public class CategoryService {
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-        
+
         softDeleteRecursive(category);
     }
 
     private void softDeleteRecursive(Category category) {
         category.setIsActive(false);
         categoryRepository.save(category);
-        
+
         if (category.getChildren() != null) {
             for (Category child : category.getChildren()) {
                 softDeleteRecursive(child);

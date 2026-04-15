@@ -123,15 +123,12 @@ const AdminLayout = () => {
     hasPermission('category:manage') && { key: '/admin/categories', icon: <AppstoreOutlined />, label: <Link to="/admin/categories">Danh mục</Link> },
     hasPermission('voucher:manage') && { key: '/admin/vouchers', icon: <DollarCircleOutlined />, label: <Link to="/admin/vouchers">Vouchers</Link> },
     hasPermission('blog:manage') && { key: '/admin/blogs', icon: <FileTextOutlined />, label: <Link to="/admin/blogs">Bài viết</Link> },
-    // Chỉ Admin mới được thấy quản lý nhân sự và phân quyền
     isSystemAdmin && hasPermission('staff:manage') && { key: '/admin/staff', icon: <UserOutlined />, label: <Link to="/admin/staff">Nhân viên</Link> },
     hasPermission('customer:manage') && { key: '/admin/users', icon: <UserOutlined />, label: <Link to="/admin/users">Khách hàng</Link> },
     isSystemAdmin && hasPermission('role:read') && { key: '/admin/roles', icon: <SettingOutlined />, label: <Link to="/admin/roles">Phân quyền</Link> },
   ].filter(Boolean);
 
   const userMenuItems = [
-    { key: 'profile', label: 'Tài khoản', icon: <UserOutlined /> },
-    { type: 'divider' },
     { key: 'logout', label: 'Đăng xuất', icon: <LogoutOutlined />, onClick: logout },
   ];
 

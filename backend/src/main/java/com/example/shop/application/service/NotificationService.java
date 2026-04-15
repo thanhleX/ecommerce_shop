@@ -1,6 +1,5 @@
 package com.example.shop.application.service;
 
-import com.example.shop.application.dto.common.PageResponse;
 import com.example.shop.application.dto.response.NotificationResponse;
 import com.example.shop.application.mapper.NotificationMapper;
 import com.example.shop.domain.entity.Notification;
@@ -17,6 +16,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -27,7 +28,7 @@ public class NotificationService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
-    public NotificationResponse createNotification(Long userId, String title, String content, NotificationType type) {
+    public void createNotification(Long userId, String title, String content, NotificationType type) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -39,18 +40,50 @@ public class NotificationService {
                 .isRead(false)
                 .build();
 
-        Notification saved = notificationRepository.save(notification);
-        NotificationResponse response = notificationMapper.toResponse(saved);
+        notificationRepository.save(notification);
 
-        // Push real-time qua WebSocket
+        // Gửi realtime cá nhân
+        NotificationResponse response = notificationMapper.toResponse(notification);
         sendRealTime(userId, response);
+    }
 
-        return response;
+    @Transactional
+    public void createNotification(List<String> roles, String title, String content, NotificationType type) {
+        List<User> users = userRepository.findByRoles_NameIn(roles);
+
+        List<Notification> notifications = users.stream()
+                .map(user -> Notification.builder()
+                        .user(user)
+                        .title(title)
+                        .content(content)
+                        .type(type)
+                        .isRead(false)
+                        .build())
+                .toList();
+
+        notificationRepository.saveAll(notifications);
+
+        if (!notifications.isEmpty()) {
+            NotificationResponse response = notificationMapper.toResponse(notifications.get(0));
+            sendRealTime(roles, response);
+        }
+    }
+
+    public void notifyManagement(String title, String content, NotificationType type) {
+        List<String> managementRoles = List.of("ROLE_ADMIN", "ROLE_STAFF");
+        createNotification(managementRoles, title, content, type);
     }
 
     public void sendRealTime(Long userId, NotificationResponse notification) {
-        messagingTemplate.convertAndSend("/topic/notifications/" + userId, notification);
+        messagingTemplate.convertAndSend("/topic/notifications/user/" + userId, notification);
     }
+
+    public void sendRealTime(List<String> roles, NotificationResponse notification) {
+        for (String role : roles) {
+            messagingTemplate.convertAndSend("/topic/notifications/role/" + role, notification);
+        }
+    }
+
 
     public Page<NotificationResponse> getNotifications(String username, Pageable pageable) {
         User user = userRepository.findByUsername(username)

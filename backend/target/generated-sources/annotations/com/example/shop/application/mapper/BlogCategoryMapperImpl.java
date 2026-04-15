@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-12T00:25:34+0700",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.7 (Oracle Corporation)"
+    date = "2026-04-15T08:54:12+0700",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.45.0.v20260224-0835, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
 public class BlogCategoryMapperImpl implements BlogCategoryMapper {
@@ -22,9 +22,9 @@ public class BlogCategoryMapperImpl implements BlogCategoryMapper {
 
         BlogCategory.BlogCategoryBuilder blogCategory = BlogCategory.builder();
 
+        blogCategory.isActive( request.getIsActive() );
         blogCategory.name( request.getName() );
         blogCategory.slug( request.getSlug() );
-        blogCategory.isActive( request.getIsActive() );
 
         return blogCategory.build();
     }
@@ -38,9 +38,9 @@ public class BlogCategoryMapperImpl implements BlogCategoryMapper {
         BlogCategoryResponse.BlogCategoryResponseBuilder blogCategoryResponse = BlogCategoryResponse.builder();
 
         blogCategoryResponse.id( blogCategory.getId() );
+        blogCategoryResponse.isActive( blogCategory.getIsActive() );
         blogCategoryResponse.name( blogCategory.getName() );
         blogCategoryResponse.slug( blogCategory.getSlug() );
-        blogCategoryResponse.isActive( blogCategory.getIsActive() );
 
         return blogCategoryResponse.build();
     }
