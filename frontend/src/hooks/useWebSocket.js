@@ -41,8 +41,6 @@ export const useWebSocket = () => {
 
       // Subscribe to role-based topics (for Admin/Staff)
       user.roles.forEach(role => {
-        const topic = `/topic/notifications/role/${role}`;
-        console.log("Subscribe role topic:", topic);
 
         client.subscribe(topic, (message) => {
           if (message.body) {

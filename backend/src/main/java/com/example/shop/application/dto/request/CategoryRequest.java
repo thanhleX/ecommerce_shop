@@ -12,5 +12,4 @@ public class CategoryRequest {
 
     private Boolean isActive = true;
 
-    private String imageUrl;
 }

@@ -14,7 +14,6 @@ public class CategoryResponse {
     private String slug;
     private Long parentId;
     private Boolean isActive;
-    private String imageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<CategoryResponse> children;

@@ -35,14 +35,14 @@ public class ProductService {
     private final ProductMapper productMapper;
 
     @Transactional(readOnly = true)
-    public PageResponse<ProductResponse> getProducts(List<Long> categoryIds, BigDecimal minPrice, BigDecimal maxPrice,
+    public PageResponse<ProductResponse> getProducts(String keyword, List<Long> categoryIds, BigDecimal minPrice, BigDecimal maxPrice,
             Boolean isActive, Pageable pageable) {
         List<Long> expandedCategoryIds = null;
         if (categoryIds != null && !categoryIds.isEmpty()) {
             expandedCategoryIds = getAllCategoryIdsRecursive(categoryIds);
         }
 
-        Page<Product> productPage = productRepository.findByFilters(expandedCategoryIds, minPrice, maxPrice, isActive,
+        Page<Product> productPage = productRepository.findByFilters(keyword, expandedCategoryIds, minPrice, maxPrice, isActive,
                 pageable);
 
         return PageResponse.of(

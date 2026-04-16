@@ -28,6 +28,4 @@ public class Category extends BaseEntity {
     @Column(name = "is_active")
     private Boolean isActive;
 
-    @Column(name = "image_url", columnDefinition = "TEXT")
-    private String imageUrl;
 }

@@ -26,6 +26,7 @@ public class ProductController {
 
     @GetMapping("/products")
     public ResponseEntity<ApiResponse<PageResponse<ProductResponse>>> getProducts(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) List<Long> categoryIds,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
@@ -38,7 +39,7 @@ public class ProductController {
         Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        PageResponse<ProductResponse> products = productService.getProducts(categoryIds, minPrice, maxPrice, isActive, pageable);
+        PageResponse<ProductResponse> products = productService.getProducts(keyword, categoryIds, minPrice, maxPrice, isActive, pageable);
         return ResponseEntity.ok(ApiResponse.success(products, "Products retrieved successfully"));
     }
 
