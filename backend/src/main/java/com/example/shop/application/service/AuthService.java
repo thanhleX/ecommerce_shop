@@ -6,14 +6,12 @@ import com.example.shop.application.dto.request.RefreshTokenRequest;
 import com.example.shop.application.dto.request.RegisterRequest;
 import com.example.shop.application.dto.response.AuthResponse;
 import com.example.shop.domain.entity.Cart;
-import com.example.shop.domain.entity.InvalidatedToken;
 import com.example.shop.domain.entity.RefreshToken;
 import com.example.shop.domain.entity.Role;
 import com.example.shop.domain.entity.User;
 import com.example.shop.domain.exception.AppException;
 import com.example.shop.domain.exception.ErrorCode;
 import com.example.shop.domain.repository.CartRepository;
-import com.example.shop.domain.repository.InvalidatedTokenRepository;
 import com.example.shop.domain.repository.RefreshTokenRepository;
 import com.example.shop.domain.repository.RoleRepository;
 import com.example.shop.domain.repository.UserRepository;
@@ -31,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +42,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
     private final CartRepository cartRepository;
-    private final InvalidatedTokenRepository invalidatedTokenRepository;
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Value("${app.jwt.refresh-expiration}")
@@ -140,34 +138,22 @@ public class AuthService {
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .role(user.getRoles().stream().map(Role::getName).collect(java.util.stream.Collectors.joining(",")))
+                .role(user.getRoles().stream().map(Role::getName).collect(Collectors.joining(",")))
                 .build();
     }
 
     @Transactional
     public void logout(String bearerToken) {
-        if (!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")) {
+        if (!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer "))
             throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
 
         String accessToken = bearerToken.substring(7);
 
-        // 1. Kiểm tra token hợp lệ trước khi blacklist
-        if (!tokenProvider.validateToken(accessToken)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
-
-        // 2. Lưu access token vào bảng blacklist
-        LocalDateTime expiredAt = tokenProvider.getExpirationFromJWT(accessToken);
-        InvalidatedToken invalidated = InvalidatedToken.builder()
-                .token(accessToken)
-                .expiredAt(expiredAt)
-                .build();
-        invalidatedTokenRepository.save(invalidated);
-
-        // 3. Xóa refresh token của user trong DB
         String username = tokenProvider.getUsernameFromJWT(accessToken);
-        userRepository.findByUsername(username).ifPresent(user -> refreshTokenRepository.deleteByUserId(user.getId()));
+
+        // Xóa refresh token trong DB
+        userRepository.findByUsername(username)
+                .ifPresent(user -> refreshTokenRepository.deleteByUserId(user.getId()));
 
         log.info("User '{}' logged out successfully", username);
     }

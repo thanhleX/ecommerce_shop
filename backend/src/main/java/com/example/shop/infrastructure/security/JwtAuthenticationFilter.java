@@ -1,15 +1,14 @@
 package com.example.shop.infrastructure.security;
 
-import com.example.shop.domain.repository.InvalidatedTokenRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -23,46 +22,42 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
-    private final CustomUserDetailsService customUserDetailsService;
-    private final InvalidatedTokenRepository invalidatedTokenRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         try {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
 
-                // Kiểm tra token có bị thu hồi (blacklisted) không
-                if (invalidatedTokenRepository.existsByToken(jwt)) {
-                    log.warn("Phát hiện yêu cầu dùng token đã bị thu hồi");
-                    filterChain.doFilter(request, response);
-                    return;
-                }
-
                 String username = tokenProvider.getUsernameFromJWT(jwt);
                 Long userId = tokenProvider.getUserIdFromJWT(jwt);
                 java.util.List<String> permissions = tokenProvider.getPermissionsFromJWT(jwt);
-                java.util.List<org.springframework.security.core.GrantedAuthority> authorities = 
-                        permissions == null ? new java.util.ArrayList<>() :
-                        permissions.stream().map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
-                        .collect(java.util.stream.Collectors.toList());
 
-                // Bỏ load qua DB để tăng tốc!
+                java.util.List<org.springframework.security.core.GrantedAuthority> authorities =
+                        permissions == null ? new java.util.ArrayList<>() :
+                                permissions.stream()
+                                        .map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
+                                        .collect(java.util.stream.Collectors.toList());
+
+                // Không cần query DB → giữ stateless
                 CustomUserDetails userDetails = new CustomUserDetails(
                         userId, username, "", true, true, true, true, authorities);
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+
+                authentication.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
-            log.error("Không thể xác thực người dùng trong security context", ex);
+            log.error("Không thể xác thực người dùng", ex);
         }
 
         filterChain.doFilter(request, response);

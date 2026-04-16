@@ -1,20 +1,18 @@
 package com.example.shop.infrastructure.security;
 
 import com.example.shop.domain.entity.User;
+import com.example.shop.domain.exception.AppException;
 import com.example.shop.domain.exception.ErrorCode;
-import com.example.shop.domain.exception.ResourceNotFoundException;
 import com.example.shop.domain.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,9 +22,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws AppException {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         List<GrantedAuthority> authorities = new java.util.ArrayList<>();
 

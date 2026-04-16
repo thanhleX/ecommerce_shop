@@ -1,6 +1,5 @@
 package com.example.shop.application.service;
 
-import com.example.shop.domain.repository.InvalidatedTokenRepository;
 import com.example.shop.domain.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,6 @@ import java.time.LocalDateTime;
 @Slf4j
 public class TokenCleanupService {
 
-    private final InvalidatedTokenRepository invalidatedTokenRepository;
     private final RefreshTokenRepository refreshTokenRepository;
 
     /**
@@ -31,16 +29,11 @@ public class TokenCleanupService {
     public void cleanupExpiredTokens() {
         LocalDateTime now = LocalDateTime.now();
 
-        long deletedInvalidated = invalidatedTokenRepository.count();
-        invalidatedTokenRepository.deleteByExpiredAtBefore(now);
-        long remainingInvalidated = invalidatedTokenRepository.count();
-
-        long deletedRefresh = refreshTokenRepository.count();
+        long before = refreshTokenRepository.count();
         refreshTokenRepository.deleteByExpiredAtBefore(now);
-        long remainingRefresh = refreshTokenRepository.count();
+        long after = refreshTokenRepository.count();
 
-        log.info("[TokenCleanup] Đã xóa {} invalidated tokens và {} refresh tokens hết hạn",
-                deletedInvalidated - remainingInvalidated,
-                deletedRefresh - remainingRefresh);
+        log.info("[TokenCleanup] Đã xóa {} refresh tokens hết hạn",
+                before - after);
     }
 }
