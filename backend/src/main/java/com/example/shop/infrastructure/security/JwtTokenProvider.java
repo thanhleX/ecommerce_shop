@@ -6,6 +6,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -45,11 +46,11 @@ public class JwtTokenProvider {
      * Tạo Access Token từ thông tin Authentication (sau khi đăng nhập thành công)
      */
     public String generateToken(Authentication authentication) {
-        com.example.shop.infrastructure.security.CustomUserDetails userDetails = (com.example.shop.infrastructure.security.CustomUserDetails) authentication.getPrincipal();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String username = userDetails.getUsername();
         Long id = userDetails.getId();
         java.util.List<String> permissions = authentication.getAuthorities().stream()
-                .map(org.springframework.security.core.GrantedAuthority::getAuthority)
+                .map(GrantedAuthority::getAuthority)
                 .collect(java.util.stream.Collectors.toList());
         return buildToken(username, id, permissions, jwtExpirationInMs);
     }
