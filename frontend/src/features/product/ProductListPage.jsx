@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Row, Col, Pagination, Spin, Typography, Empty } from 'antd';
+import { Row, Col, Pagination, Spin, Typography, Empty, Input } from 'antd';
 import { useProducts } from '../../hooks/useProducts';
 import ProductCard from './components/ProductCard';
 import ProductFilter from './components/ProductFilter';
@@ -7,6 +7,7 @@ import categoryApi from '../../api/categoryApi';
 import { useSearchParams } from 'react-router-dom';
 
 const { Title, Text } = Typography;
+const { Search } = Input;
 
 const DEFAULT_PRICE_RANGE = [0, 3000000];
 
@@ -59,6 +60,7 @@ const ProductListPage = () => {
   const filtersFromUrl = useMemo(() => {
     const slugs = searchParams.getAll('category');
     const priceStr = searchParams.get('price');
+    const keyword = searchParams.get('q') || '';
     const page = parseInt(searchParams.get('page') || '1', 10);
 
     // Map slugs to IDs with Hierarchy Awareness
@@ -68,10 +70,8 @@ const ProductListPage = () => {
       if (cat) {
         const hasChildren = categories.some(c => c.parentId === cat.id);
         if (hasChildren) {
-          // If it's a parent, include all descendants
           categoryIds = [...new Set([...categoryIds, ...getAllChildIds(cat.id, categories)])];
         } else {
-          // If it's a child, only include itself
           categoryIds = [...new Set([...categoryIds, cat.id])];
         }
       }
@@ -89,7 +89,7 @@ const ProductListPage = () => {
       }
     }
 
-    return { categoryIds, priceRange, page, rawSlugs: slugs };
+    return { categoryIds, priceRange, page, keyword, rawSlugs: slugs };
   }, [searchParams, categories]);
 
   // 5. Fetch Products on Filter Change
@@ -97,6 +97,7 @@ const ProductListPage = () => {
     if (categories.length > 0 || filtersFromUrl.rawSlugs.length === 0) {
       fetchProducts({
         page: filtersFromUrl.page,
+        keyword: filtersFromUrl.keyword,
         categoryIds: filtersFromUrl.categoryIds.length > 0 ? filtersFromUrl.categoryIds : undefined,
         minPrice: filtersFromUrl.priceRange[0],
         maxPrice: filtersFromUrl.priceRange[1]
@@ -104,6 +105,7 @@ const ProductListPage = () => {
     }
   }, [
     filtersFromUrl.page,
+    filtersFromUrl.keyword,
     JSON.stringify(filtersFromUrl.categoryIds),
     JSON.stringify(filtersFromUrl.priceRange),
     categories.length,
@@ -112,9 +114,10 @@ const ProductListPage = () => {
 
   // 6. Update URL on Filter Change
   const handleFilterChange = ({ categories: newCategoryIds, priceRange: newPriceRange }) => {
-    const newParams = new URLSearchParams();
-
-    // Convert selected IDs back to SLUGS for URL
+    const newParams = new URLSearchParams(searchParams);
+    
+    // Clear old categories to replace with new ones
+    newParams.delete('category');
     newCategoryIds.forEach(id => {
       const cat = categories.find(c => c.id === id);
       if (cat) newParams.append('category', cat.slug);
@@ -122,8 +125,21 @@ const ProductListPage = () => {
 
     if (newPriceRange[0] !== DEFAULT_PRICE_RANGE[0] || newPriceRange[1] !== DEFAULT_PRICE_RANGE[1]) {
       newParams.set('price', `${newPriceRange[0]}-${newPriceRange[1]}`);
+    } else {
+      newParams.delete('price');
     }
 
+    newParams.set('page', '1');
+    setSearchParams(newParams);
+  };
+
+  const handleSearch = (value) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (value) {
+      newParams.set('q', value);
+    } else {
+      newParams.delete('q');
+    }
     newParams.set('page', '1');
     setSearchParams(newParams);
   };
@@ -152,11 +168,22 @@ const ProductListPage = () => {
           />
         </Col>
         <Col xs={24} md={18}>
+          <div style={{ marginBottom: 24 }}>
+            <Search
+              placeholder="Tìm kiếm sản phẩm..."
+              allowClear
+              enterButton="Tìm kiếm"
+              size="large"
+              defaultValue={filtersFromUrl.keyword}
+              onSearch={handleSearch}
+            />
+          </div>
+
           {loading ? (
             <div style={{ textAlign: 'center', padding: 80 }}><Spin size="large" /></div>
           ) : products.length === 0 ? (
             <div style={{ background: '#fff', padding: 100, borderRadius: 8, border: '1px solid #f0f0f0' }}>
-              <Empty description="Không tìm thấy sản phẩm nào phù hợp với bộ lọc" />
+              <Empty description={filtersFromUrl.keyword ? `Không tìm thấy sản phẩm nào khớp với "${filtersFromUrl.keyword}"` : "Không tìm thấy sản phẩm nào phù hợp với bộ lọc"} />
             </div>
           ) : (
             <>

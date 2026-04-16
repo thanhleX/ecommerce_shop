@@ -58,7 +58,6 @@ const CategoryManagePage = () => {
       name: record.name,
       parentId: record.parentId,
       isActive: record.isActive,
-      imageUrl: record.imageUrl
     });
     setIsModalVisible(true);
   };
@@ -202,12 +201,6 @@ const CategoryManagePage = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item
-            name="imageUrl"
-            label="Link ảnh"
-          >
-            <Input placeholder="URL ảnh danh mục" />
-          </Form.Item>
 
           <Form.Item
             name="isActive"
