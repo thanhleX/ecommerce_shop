@@ -21,6 +21,11 @@ public class ProductRequest {
     @Valid
     private List<VariantRequest> variants;
 
+    // Fields for Simple Product (No variants)
+    private String sku;
+    private java.math.BigDecimal price;
+    private Integer quantity;
+
     @Valid
     private List<ImageRequest> images;
 }

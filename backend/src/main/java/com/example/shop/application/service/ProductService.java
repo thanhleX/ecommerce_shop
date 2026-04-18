@@ -108,12 +108,23 @@ public class ProductService {
         if (product.getVariants() == null) {
             product.setVariants(new ArrayList<>());
         }
-        if (request.getVariants() != null) {
+
+        if (request.getVariants() != null && !request.getVariants().isEmpty()) {
+            // Case 1: Multiple variants provided
             for (VariantRequest vRequest : request.getVariants()) {
                 ProductVariant variant = productMapper.toVariant(vRequest);
                 variant.setProduct(product);
                 product.getVariants().add(variant);
             }
+        } else if (request.getSku() != null && request.getPrice() != null && request.getQuantity() != null) {
+            // Case 2: Simple product (No variants list, use top-level fields)
+            ProductVariant defaultVariant = new ProductVariant();
+            defaultVariant.setSku(request.getSku());
+            defaultVariant.setPrice(request.getPrice());
+            defaultVariant.setQuantity(request.getQuantity());
+            defaultVariant.setIsActive(true);
+            defaultVariant.setProduct(product);
+            product.getVariants().add(defaultVariant);
         }
 
         // Handle images
@@ -158,7 +169,7 @@ public class ProductService {
         product.setCategory(category);
 
         // Update variants
-        if (request.getVariants() != null) {
+        if (request.getVariants() != null && !request.getVariants().isEmpty()) {
             List<ProductVariant> existingVariants = product.getVariants();
             List<ProductVariant> newVariants = new ArrayList<>();
 
@@ -184,7 +195,17 @@ public class ProductService {
             }
             existingVariants.clear();
             existingVariants.addAll(newVariants);
-        } else {
+        } else if (request.getSku() != null && request.getPrice() != null && request.getQuantity() != null) {
+            // Update as Simple Product (keep only one default variant)
+            product.getVariants().clear();
+            ProductVariant defaultVariant = new ProductVariant();
+            defaultVariant.setSku(request.getSku());
+            defaultVariant.setPrice(request.getPrice());
+            defaultVariant.setQuantity(request.getQuantity());
+            defaultVariant.setIsActive(true);
+            defaultVariant.setProduct(product);
+            product.getVariants().add(defaultVariant);
+        } else if (request.getVariants() != null) {
             product.getVariants().clear();
         }
 
