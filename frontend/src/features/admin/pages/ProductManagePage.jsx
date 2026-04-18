@@ -108,7 +108,12 @@ const ProductManagePage = () => {
         description: product.description,
         categoryId: product.categoryId,
         isActive: product.isActive,
-        variants: product.variants,
+        variants: product.variants?.length > 1 || (product.variants?.length === 1 && product.variants[0].attributes) 
+          ? product.variants 
+          : [],
+        sku: product.variants?.length === 1 && !product.variants[0].attributes ? product.variants[0].sku : undefined,
+        price: product.variants?.length === 1 && !product.variants[0].attributes ? product.variants[0].price : undefined,
+        quantity: product.variants?.length === 1 && !product.variants[0].attributes ? product.variants[0].quantity : undefined,
         images: product.images
       });
       setIsModalVisible(true);
@@ -345,61 +350,106 @@ const ProductManagePage = () => {
             )}
           </Form.List>
 
-          <Divider titlePlacement="left">Biến thể (Size/Color/Price)</Divider>
-          <Form.List name="variants">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(({ key, name, ...restField }) => (
-                  <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                    <Form.Item
-                      {...restField}
-                      name={[name, 'id']}
-                      hidden
-                    >
-                      <Input />
-                    </Form.Item>
-                    <Form.Item
-                      {...restField}
-                      name={[name, 'sku']}
-                      rules={[{ required: true, message: 'Nhập SKU' }]}
-                      label="SKU"
-                    >
-                      <Input placeholder="SKU (VD: AO-SM-01)" />
-                    </Form.Item>
-                    <Form.Item
-                      {...restField}
-                      name={[name, 'attributes']}
-                      label="Thuộc tính"
-                    >
-                      <Input placeholder='VD: {"Size":"L"}' />
-                    </Form.Item>
-                    <Form.Item
-                      {...restField}
-                      name={[name, 'price']}
-                      rules={[{ required: true, message: 'Nhập giá' }]}
-                      label="Giá"
-                    >
-                      <InputNumber placeholder="Giá" min={0} />
-                    </Form.Item>
-                    <Form.Item
-                      {...restField}
-                      name={[name, 'quantity']}
-                      rules={[{ required: true, message: 'Nhập SL' }]}
-                      label="Số lượng"
-                    >
-                      <InputNumber placeholder="SL" min={0} />
-                    </Form.Item>
-                    <MinusCircleOutlined onClick={() => remove(name)} />
-                  </Space>
-                ))}
-                <Form.Item>
-                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                    Thêm biến thể
-                  </Button>
-                </Form.Item>
-              </>
-            )}
-          </Form.List>
+          <Divider titlePlacement="left">Thông tin bán hàng</Divider>
+          
+          <Form.Item shouldUpdate={(prevValues, curValues) => prevValues.variants !== curValues.variants}>
+            {({ getFieldValue }) => {
+              const variants = getFieldValue('variants') || [];
+              const isSimpleProduct = variants.length === 0;
+
+              return (
+                <>
+                  {isSimpleProduct ? (
+                    <div style={{ background: '#f9f9f9', padding: '16px', borderRadius: '8px', marginBottom: '16px' }}>
+                      <Text type="secondary" style={{ display: 'block', marginBottom: '12px' }}>
+                        💡 Bạn đang ở chế độ <b>Sản phẩm đơn giản</b>. Nhập thông tin trực tiếp dưới đây hoặc bấm "Thêm biến thể" để quản lý chi tiết.
+                      </Text>
+                      <Row gutter={16}>
+                        <Col span={8}>
+                          <Form.Item name="sku" label="Mã SKU" rules={[{ required: isSimpleProduct, message: 'Nhập SKU' }]}>
+                            <Input placeholder="VD: SM-001" />
+                          </Form.Item>
+                        </Col>
+                        <Col span={8}>
+                          <Form.Item name="price" label="Giá bán" rules={[{ required: isSimpleProduct, message: 'Nhập giá' }]}>
+                            <InputNumber style={{ width: '100%' }} placeholder="Giá" min={0} />
+                          </Form.Item>
+                        </Col>
+                        <Col span={8}>
+                          <Form.Item name="quantity" label="Số lượng kho" rules={[{ required: isSimpleProduct, message: 'Nhập SL' }]}>
+                            <InputNumber style={{ width: '100%' }} placeholder="Số lượng" min={0} />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    </div>
+                  ) : null}
+
+                  <Form.List name="variants">
+                    {(fields, { add, remove }) => (
+                      <>
+                        {fields.map(({ key, name, ...restField }) => (
+                          <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'id']}
+                              hidden
+                            >
+                              <Input />
+                            </Form.Item>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'sku']}
+                              rules={[{ required: true, message: 'Nhập SKU' }]}
+                              label="SKU"
+                            >
+                              <Input placeholder="SKU (VD: AO-SM-01)" />
+                            </Form.Item>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'attributes']}
+                              label="Thuộc tính"
+                            >
+                              <Input placeholder='VD: {"Size":"L"}' />
+                            </Form.Item>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'price']}
+                              rules={[{ required: true, message: 'Nhập giá' }]}
+                              label="Giá"
+                            >
+                              <InputNumber placeholder="Giá" min={0} />
+                            </Form.Item>
+                            <Form.Item
+                              {...restField}
+                              name={[name, 'quantity']}
+                              rules={[{ required: true, message: 'Nhập SL' }]}
+                              label="Số lượng"
+                            >
+                              <InputNumber placeholder="SL" min={0} />
+                            </Form.Item>
+                            <MinusCircleOutlined onClick={() => remove(name)} />
+                          </Space>
+                        ))}
+                        <Form.Item>
+                          <Button 
+                            type="dashed" 
+                            onClick={() => {
+                              // If converting from simple to variants, clear simple fields if needed
+                              add();
+                            }} 
+                            block 
+                            icon={<PlusOutlined />}
+                          >
+                            Thêm biến thể (Chuyển sang chế độ nhiều biến thể)
+                          </Button>
+                        </Form.Item>
+                      </>
+                    )}
+                  </Form.List>
+                </>
+              );
+            }}
+          </Form.Item>
         </Form>
       </Modal>
     </div>
