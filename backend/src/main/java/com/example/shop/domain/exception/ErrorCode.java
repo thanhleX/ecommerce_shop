@@ -42,6 +42,7 @@ public enum ErrorCode {
     TOKEN_BLACKLISTED(1030, "Token đã bị thu hồi, vui lòng đăng nhập lại", HttpStatus.UNAUTHORIZED),
     INVALID_PASSWORD(1031, "Mật khẩu hiện tại không chính xác", HttpStatus.BAD_REQUEST),
     CONFIRM_PASSWORD_NOT_MATCH(1032, "Mật khẩu xác nhận không khớp", HttpStatus.BAD_REQUEST),
+    ACCOUNT_LINKING_REQUIRED(1039, "Email này đã được đăng ký. Vui lòng nhập mật khẩu để liên kết với tài khoản Google.", HttpStatus.ACCEPTED),
     UNCATEGORIZED_EXCEPTION(9999, "Lỗi hệ thống", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;

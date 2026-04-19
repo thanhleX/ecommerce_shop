@@ -25,6 +25,12 @@ public class User extends BaseAuditEntity {
     @Column(length = 255)
     private String password;
 
+    @Column(length = 50)
+    private String provider;
+
+    @Column(name = "provider_id", length = 255)
+    private String providerId;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_roles",

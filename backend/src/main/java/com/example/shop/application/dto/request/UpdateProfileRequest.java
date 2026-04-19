@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 public class UpdateProfileRequest {
-    @NotBlank(message = "Full name cannot be blank")
+    @NotBlank(message = "Họ tên không được để trống")
     private String fullName;
 
-    @NotBlank(message = "Email cannot be blank")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Định dạng email không hợp lệ")
     private String email;
 }

@@ -91,5 +91,36 @@ export const useAuth = () => {
     }
   };
 
-  return { customerLogin, adminLogin, register, logout, loading };
+  const googleLogin = async (idToken) => {
+    setLoading(true);
+    try {
+      const response = await authApi.googleLogin({ idToken });
+      await handleLoginSuccess(response, '/');
+      return { success: true };
+    } catch (error) {
+      console.error('Google Login Error:', error);
+      // Trả về error để UI xử lý (hiển thị modal link account nếu code = 1039)
+      return { success: false, error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const linkGoogle = async (idToken, password) => {
+    setLoading(true);
+    try {
+      const response = await authApi.linkGoogle({ idToken, password });
+      await handleLoginSuccess(response, '/');
+      message.success('Liên kết tài khoản thành công!');
+      return { success: true };
+    } catch (error) {
+      console.error('Link Google Error:', error);
+      message.error(error?.message || 'Liên kết thất bại. Vui lòng kiểm tra lại mật khẩu!');
+      return { success: false, error };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { customerLogin, adminLogin, register, googleLogin, linkGoogle, logout, loading };
 };

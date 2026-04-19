@@ -21,6 +21,8 @@ app:
     secret: ${JWT_SECRET:0tpW3AuazUoAL61xcfp6jz9yUmMCKHBA04OY8Z1AwZegfu5D9q/X/C7x9JTV0GcT}
     expiration: ${JWT_EXPIRATION:900000}          # 15 phút (Access Token)
     refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 ngày (Refresh Token)
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:437402316397-vpo3brm7dqpa3lgkpr3fpm4hil6ga3bm.apps.googleusercontent.com}
 
 spring.task.scheduling.pool.size: 2    # Cho phép @Scheduled chạy
 

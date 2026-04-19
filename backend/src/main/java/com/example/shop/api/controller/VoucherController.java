@@ -38,14 +38,14 @@ public class VoucherController {
         Sort sort = Sort.by(Sort.Direction.fromString(direction), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
         return ResponseEntity
-                .ok(ApiResponse.success(voucherService.getAllVouchers(pageable), "Vouchers retrieved successfully"));
+                .ok(ApiResponse.success(voucherService.getAllVouchers(pageable), "Lấy danh sách Voucher thành công"));
     }
 
     @PostMapping("/admin/vouchers")
     @PreAuthorize("hasAuthority('voucher:manage')")
     public ResponseEntity<ApiResponse<VoucherResponse>> createVoucher(@Valid @RequestBody VoucherRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(voucherService.createVoucher(request), "Voucher created successfully"));
+                .body(ApiResponse.success(voucherService.createVoucher(request), "Tạo Voucher thành công"));
     }
 
     @PutMapping("/admin/vouchers/{id}")
@@ -53,14 +53,14 @@ public class VoucherController {
     public ResponseEntity<ApiResponse<VoucherResponse>> updateVoucher(
             @PathVariable Long id, @Valid @RequestBody VoucherRequest request) {
         return ResponseEntity
-                .ok(ApiResponse.success(voucherService.updateVoucher(id, request), "Voucher updated successfully"));
+                .ok(ApiResponse.success(voucherService.updateVoucher(id, request), "Cập nhật Voucher thành công"));
     }
 
     @DeleteMapping("/admin/vouchers/{id}")
     @PreAuthorize("hasAuthority('voucher:manage')")
     public ResponseEntity<ApiResponse<Void>> deleteVoucher(@PathVariable Long id) {
         voucherService.deleteVoucher(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Voucher deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa Voucher thành công"));
     }
 
     @GetMapping("/vouchers/validate")
@@ -78,6 +78,6 @@ public class VoucherController {
                         "voucher", response,
                         "discount", discount,
                         "finalAmount", orderValue - discount),
-                "Voucher is valid"));
+                "Mã giảm giá hợp lệ"));
     }
 }

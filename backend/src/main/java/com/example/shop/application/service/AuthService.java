@@ -1,6 +1,8 @@
 package com.example.shop.application.service;
 
 import com.example.shop.application.dto.request.ChangePasswordRequest;
+import com.example.shop.application.dto.request.GoogleLoginRequest;
+import com.example.shop.application.dto.request.LinkGoogleRequest;
 import com.example.shop.application.dto.request.LoginRequest;
 import com.example.shop.application.dto.request.RefreshTokenRequest;
 import com.example.shop.application.dto.request.RegisterRequest;
@@ -16,6 +18,8 @@ import com.example.shop.domain.repository.RefreshTokenRepository;
 import com.example.shop.domain.repository.RoleRepository;
 import com.example.shop.domain.repository.UserRepository;
 import com.example.shop.infrastructure.security.JwtTokenProvider;
+import com.example.shop.infrastructure.utils.GoogleVerifier;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +47,7 @@ public class AuthService {
     private final JwtTokenProvider tokenProvider;
     private final CartRepository cartRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final GoogleVerifier googleVerifier;
 
     @Value("${app.jwt.refresh-expiration}")
     private long refreshExpirationMs;
@@ -111,6 +116,100 @@ public class AuthService {
         String refreshTokenStr = createAndSaveRefreshToken(user);
 
         return buildAuthResponse(accessToken, refreshTokenStr, user);
+    }
+
+    @Transactional
+    public AuthResponse googleLogin(GoogleLoginRequest request) {
+        try {
+            GoogleIdToken.Payload payload = googleVerifier.verify(request.getIdToken());
+            if (payload == null) {
+                throw new AppException(ErrorCode.UNAUTHORIZED);
+            }
+
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            String googleId = payload.getSubject();
+
+            User user = userRepository.findByEmail(email).orElseGet(() -> {
+                // Đăng ký mới nếu chưa tồn tại
+                Role userRole = roleRepository.findByName("CUSTOMER")
+                        .orElseThrow(() -> new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION));
+                
+                String username = email.split("@")[0] + "_" + java.util.UUID.randomUUID().toString().substring(0, 5);
+
+                User newUser = User.builder()
+                        .username(username)
+                        .fullName(name)
+                        .email(email)
+                        .provider("google")
+                        .providerId(googleId)
+                        .isActive(true)
+                        .roles(java.util.Collections.singleton(userRole))
+                        .build();
+                
+                User savedUser = userRepository.save(newUser);
+                Cart cart = Cart.builder().user(savedUser).build();
+                cartRepository.save(cart);
+                return savedUser;
+            });
+
+            // Nếu user đã tồn tại nhưng chưa liên kết Google
+            if (user.getProvider() == null || !user.getProvider().equals("google")) {
+                throw new AppException(ErrorCode.ACCOUNT_LINKING_REQUIRED);
+            }
+
+            if (!user.getIsActive()) {
+                throw new AppException(ErrorCode.ACCOUNT_DISABLED);
+            }
+
+            String accessToken = tokenProvider.generateTokenFromUser(user);
+            refreshTokenRepository.deleteByUserId(user.getId());
+            String refreshTokenStr = createAndSaveRefreshToken(user);
+
+            return buildAuthResponse(accessToken, refreshTokenStr, user);
+
+        } catch (Exception e) {
+            log.error("Google login error", e);
+            if (e instanceof AppException) throw (AppException) e;
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+    }
+
+    @Transactional
+    public AuthResponse linkGoogle(LinkGoogleRequest request) {
+        try {
+            GoogleIdToken.Payload payload = googleVerifier.verify(request.getIdToken());
+            if (payload == null) {
+                throw new AppException(ErrorCode.UNAUTHORIZED);
+            }
+
+            String email = payload.getEmail();
+            String googleId = payload.getSubject();
+
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+            // Xác thực mật khẩu cũ
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                throw new AppException(ErrorCode.INVALID_PASSWORD);
+            }
+
+            // Tiến hành link
+            user.setProvider("google");
+            user.setProviderId(googleId);
+            userRepository.save(user);
+
+            String accessToken = tokenProvider.generateTokenFromUser(user);
+            refreshTokenRepository.deleteByUserId(user.getId());
+            String refreshTokenStr = createAndSaveRefreshToken(user);
+
+            return buildAuthResponse(accessToken, refreshTokenStr, user);
+
+        } catch (Exception e) {
+            log.error("Link google error", e);
+            if (e instanceof AppException) throw (AppException) e;
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
     }
 
     @Transactional

@@ -22,7 +22,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         
         Map<String, Object> body = new HashMap<>();
         body.put("success", false);
-        body.put("message", "Invalid credentials or token expired.");
+        body.put("message", "Thông tin xác thực không hợp lệ hoặc phiên làm việc đã hết hạn.");
         body.put("errors", null);
         body.put("timestamp", java.time.Instant.now().toString());
 

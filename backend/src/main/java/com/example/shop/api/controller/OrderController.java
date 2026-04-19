@@ -32,7 +32,7 @@ public class OrderController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody PlaceOrderRequest request) {
         OrderResponse response = orderService.placeOrder(userDetails.getId(), request);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(response, "Đặt hàng thành công"));
     }
 
     @GetMapping
@@ -41,7 +41,7 @@ public class OrderController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             Pageable pageable) {
         Page<OrderResponse> response = orderService.getOrders(userDetails.getId(), pageable);
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(response)));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(response), "Lấy lịch sử đơn hàng thành công"));
     }
 
     @GetMapping("/{id}")
@@ -50,7 +50,7 @@ public class OrderController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long id) {
         OrderResponse response = orderService.getOrderById(userDetails.getId(), id);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy chi tiết đơn hàng thành công"));
     }
 
     @PutMapping("/{id}/cancel")
@@ -59,6 +59,6 @@ public class OrderController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long id) {
         OrderResponse response = orderService.cancelOrder(userDetails.getId(), id);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(response, "Hủy đơn hàng thành công"));
     }
 }

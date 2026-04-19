@@ -8,12 +8,12 @@ import java.util.List;
 
 @Data
 public class ProductRequest {
-    @NotBlank(message = "Product name is required")
+    @NotBlank(message = "Tên sản phẩm là bắt buộc")
     private String name;
 
     private String description;
 
-    @NotNull(message = "Category ID is required")
+    @NotNull(message = "ID danh mục là bắt buộc")
     private Long categoryId;
 
     private Boolean isActive = true;

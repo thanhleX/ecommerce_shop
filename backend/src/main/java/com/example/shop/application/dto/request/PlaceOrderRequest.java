@@ -6,10 +6,10 @@ import lombok.Data;
 @Data
 public class PlaceOrderRequest {
 
-    @NotNull(message = "Payment method ID is required")
+    @NotNull(message = "ID phương thức thanh toán là bắt buộc")
     private Long paymentMethodId;
 
-    @NotNull(message = "Address ID is required")
+    @NotNull(message = "ID địa chỉ là bắt buộc")
     private Long addressId;
 
     private String note;

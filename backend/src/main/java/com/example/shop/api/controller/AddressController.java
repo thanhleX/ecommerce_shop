@@ -36,26 +36,26 @@ public class AddressController {
     @GetMapping
     public ResponseEntity<ApiResponse<List<AddressResponse>>> getUserAddresses() {
         List<AddressResponse> addresses = addressService.getUserAddresses(getCurrentUserId());
-        return ResponseEntity.ok(ApiResponse.success(addresses, "Addresses retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(addresses, "Lấy danh sách địa chỉ thành công"));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<AddressResponse>> createAddress(@Valid @RequestBody AddressRequest request) {
         AddressResponse address = addressService.createAddress(getCurrentUserId(), request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(address, "Address created successfully"));
+                .body(ApiResponse.success(address, "Tạo địa chỉ mới thành công"));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<AddressResponse>> updateAddress(
             @PathVariable Long id, @Valid @RequestBody AddressRequest request) {
         AddressResponse address = addressService.updateAddress(getCurrentUserId(), id, request);
-        return ResponseEntity.ok(ApiResponse.success(address, "Address updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(address, "Cập nhật địa chỉ thành công"));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteAddress(@PathVariable Long id) {
         addressService.deleteAddress(getCurrentUserId(), id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Address deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa địa chỉ thành công"));
     }
 }

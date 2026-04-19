@@ -1,10 +1,7 @@
 package com.example.shop.api.controller;
 
 import com.example.shop.application.dto.common.ApiResponse;
-import com.example.shop.application.dto.request.ChangePasswordRequest;
-import com.example.shop.application.dto.request.LoginRequest;
-import com.example.shop.application.dto.request.RefreshTokenRequest;
-import com.example.shop.application.dto.request.RegisterRequest;
+import com.example.shop.application.dto.request.*;
 import com.example.shop.application.dto.response.AuthResponse;
 import com.example.shop.application.service.AuthService;
 import jakarta.validation.Valid;
@@ -24,6 +21,18 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success(response, "Đăng nhập thành công"));
+    }
+
+    @PostMapping("/google-login")
+    public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        AuthResponse response = authService.googleLogin(request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Đăng nhập bằng Google thành công"));
+    }
+
+    @PostMapping("/link-google")
+    public ResponseEntity<ApiResponse<AuthResponse>> linkGoogle(@Valid @RequestBody LinkGoogleRequest request) {
+        AuthResponse response = authService.linkGoogle(request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Liên kết tài khoản Google thành công"));
     }
 
     @PostMapping("/register")

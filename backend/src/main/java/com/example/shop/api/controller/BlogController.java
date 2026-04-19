@@ -26,24 +26,24 @@ public class BlogController {
     @GetMapping("/api/blogs")
     @Operation(summary = "Get published blogs (Public)")
     public ResponseEntity<ApiResponse<PageResponse<BlogResponse>>> getPublishedBlogs(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(blogService.getPublishedBlogs(pageable))));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(blogService.getPublishedBlogs(pageable)), "Lấy danh sách bài viết thành công"));
     }
 
     @GetMapping("/api/blogs/featured")
     @Operation(summary = "Get featured blogs (Public)")
     public ResponseEntity<ApiResponse<List<BlogResponse>>> getFeaturedBlogs() {
-        return ResponseEntity.ok(ApiResponse.success(blogService.getFeaturedBlogs()));
+        return ResponseEntity.ok(ApiResponse.success(blogService.getFeaturedBlogs(), "Lấy danh sách bài viết nổi bật thành công"));
     }
 
     @GetMapping("/api/blogs/{slug}")
     @Operation(summary = "Get blog by slug (Public)")
     public ResponseEntity<ApiResponse<BlogResponse>> getBlogBySlug(@PathVariable String slug) {
-        return ResponseEntity.ok(ApiResponse.success(blogService.getBlogBySlug(slug)));
+        return ResponseEntity.ok(ApiResponse.success(blogService.getBlogBySlug(slug), "Lấy nội dung bài viết thành công"));
     }
 
     @GetMapping("/api/blog-categories")
     @Operation(summary = "Get active blog categories (Public)")
     public ResponseEntity<ApiResponse<List<BlogCategoryResponse>>> getCategories() {
-        return ResponseEntity.ok(ApiResponse.success(blogCategoryService.getActiveCategories()));
+        return ResponseEntity.ok(ApiResponse.success(blogCategoryService.getActiveCategories(), "Lấy danh mục bài viết thành công"));
     }
 }

@@ -9,15 +9,15 @@ import java.math.BigDecimal;
 public class VariantRequest {
     private Long id;
 
-    @NotBlank(message = "SKU cannot be blank")
+    @NotBlank(message = "SKU không được để trống")
     private String sku;
 
     private String attributes; // Example: {"Color":"Red","Size":"XL"}
 
-    @NotNull(message = "Price is required")
+    @NotNull(message = "Giá sản phẩm là bắt buộc")
     private BigDecimal price;
 
-    @NotNull(message = "Quantity is required")
+    @NotNull(message = "Số lượng là bắt buộc")
     private Integer quantity;
 
     private Boolean isActive = true;

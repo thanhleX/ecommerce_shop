@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class ImageRequest {
-    @NotBlank(message = "Image URL is required")
+    @NotBlank(message = "URL hình ảnh là bắt buộc")
     private String imageUrl;
 
     private Boolean isThumbnail = false;

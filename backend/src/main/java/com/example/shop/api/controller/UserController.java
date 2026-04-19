@@ -34,12 +34,12 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser() {
         UserResponse response = userService.getProfile(getCurrentUserId());
-        return ResponseEntity.ok(ApiResponse.success(response, "User profile retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy thông tin cá nhân thành công"));
     }
 
     @PutMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> updateCurrentUser(@Valid @RequestBody UpdateProfileRequest request) {
         UserResponse response = userService.updateProfile(getCurrentUserId(), request);
-        return ResponseEntity.ok(ApiResponse.success(response, "User profile updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Cập nhật thông tin cá nhân thành công"));
     }
 }

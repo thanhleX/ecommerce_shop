@@ -40,22 +40,22 @@ public class ProductController {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         PageResponse<ProductResponse> products = productService.getProducts(keyword, categoryIds, minPrice, maxPrice, isActive, pageable);
-        return ResponseEntity.ok(ApiResponse.success(products, "Products retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(products, "Lấy danh sách sản phẩm thành công"));
     }
 
     @GetMapping("/products/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> getProductById(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(productService.getProductById(id), "Product retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(productService.getProductById(id), "Lấy thông tin sản phẩm thành công"));
     }
 
     @GetMapping("/products/featured")
     public ResponseEntity<ApiResponse<List<ProductResponse>>> getFeaturedProducts() {
-        return ResponseEntity.ok(ApiResponse.success(productService.getFeaturedProducts(), "Featured products retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(productService.getFeaturedProducts(), "Lấy danh sách sản phẩm nổi bật thành công"));
     }
 
     @GetMapping("/products/slug/{slug}")
     public ResponseEntity<ApiResponse<ProductResponse>> getProductBySlug(@PathVariable String slug) {
-        return ResponseEntity.ok(ApiResponse.success(productService.getProductBySlug(slug), "Product retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(productService.getProductBySlug(slug), "Lấy thông tin sản phẩm thành công"));
     }
 
     @PostMapping("/admin/products")
@@ -63,7 +63,7 @@ public class ProductController {
     public ResponseEntity<ApiResponse<ProductResponse>> createProduct(@Valid @RequestBody ProductRequest request) {
         ProductResponse response = productService.createProduct(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Product created successfully"));
+                .body(ApiResponse.success(response, "Tạo sản phẩm thành công"));
     }
 
     @PutMapping("/admin/products/{id}")
@@ -71,13 +71,13 @@ public class ProductController {
     public ResponseEntity<ApiResponse<ProductResponse>> updateProduct(
             @PathVariable Long id, @Valid @RequestBody ProductRequest request) {
         ProductResponse response = productService.updateProduct(id, request);
-        return ResponseEntity.ok(ApiResponse.success(response, "Product updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(response, "Cập nhật sản phẩm thành công"));
     }
 
     @DeleteMapping("/admin/products/{id}")
     @PreAuthorize("hasAuthority('product:delete')")
     public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Product deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa sản phẩm thành công"));
     }
 }

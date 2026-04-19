@@ -27,7 +27,7 @@ public class AdminOrderController {
     @Operation(summary = "Get all orders (paginated)")
     public ResponseEntity<ApiResponse<PageResponse<OrderResponse>>> getAllOrders(Pageable pageable) {
         Page<OrderResponse> response = orderService.getAllOrders(pageable);
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(response)));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(response), "Lấy danh sách đơn hàng thành công"));
     }
 
     @PutMapping("/{id}/status")
@@ -36,6 +36,6 @@ public class AdminOrderController {
             @PathVariable Long id,
             @RequestParam OrderStatus status) {
         OrderResponse response = orderService.updateOrderStatus(id, status);
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(ApiResponse.success(response, "Cập nhật trạng thái đơn hàng thành công"));
     }
 }

@@ -22,6 +22,6 @@ public class AdminDashboardController {
     @PreAuthorize("hasAuthority('order:read') or hasAuthority('product:read')")
     @Operation(summary = "Get admin dashboard stats (Admin)")
     public ResponseEntity<ApiResponse<DashboardStatsResponse>> getDashboard() {
-        return ResponseEntity.ok(ApiResponse.success(dashboardService.getStats()));
+        return ResponseEntity.ok(ApiResponse.success(dashboardService.getStats(), "Lấy thông số Dashboard thành công"));
     }
 }

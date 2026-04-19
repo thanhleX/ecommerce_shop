@@ -28,7 +28,7 @@ public class CartController {
     public ResponseEntity<ApiResponse<CartResponse>> getCart(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         CartResponse cartResponse = cartService.getCart(userDetails.getId());
-        return ResponseEntity.ok(ApiResponse.success(cartResponse));
+        return ResponseEntity.ok(ApiResponse.success(cartResponse, "Lấy giỏ hàng thành công"));
     }
 
     @PostMapping("/items")
@@ -37,7 +37,7 @@ public class CartController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody CartItemRequest request) {
         CartResponse cartResponse = cartService.addItem(userDetails.getId(), request);
-        return ResponseEntity.ok(ApiResponse.success(cartResponse));
+        return ResponseEntity.ok(ApiResponse.success(cartResponse, "Đã thêm sản phẩm vào giỏ hàng"));
     }
 
     @PutMapping("/items/{itemId}")
@@ -47,7 +47,7 @@ public class CartController {
             @PathVariable Long itemId,
             @RequestParam Integer quantity) {
         CartResponse cartResponse = cartService.updateItemQuantity(userDetails.getId(), itemId, quantity);
-        return ResponseEntity.ok(ApiResponse.success(cartResponse));
+        return ResponseEntity.ok(ApiResponse.success(cartResponse, "Đã cập nhật số lượng sản phẩm"));
     }
 
     @DeleteMapping("/items/{itemId}")
@@ -56,7 +56,7 @@ public class CartController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long itemId) {
         CartResponse cartResponse = cartService.removeItem(userDetails.getId(), itemId);
-        return ResponseEntity.ok(ApiResponse.success(cartResponse));
+        return ResponseEntity.ok(ApiResponse.success(cartResponse, "Đã xóa sản phẩm khỏi giỏ hàng"));
     }
 
     @DeleteMapping
@@ -64,6 +64,6 @@ public class CartController {
     public ResponseEntity<ApiResponse<CartResponse>> clearCart(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         CartResponse cartResponse = cartService.clearCart(userDetails.getId());
-        return ResponseEntity.ok(ApiResponse.success(cartResponse));
+        return ResponseEntity.ok(ApiResponse.success(cartResponse, "Đã làm trống giỏ hàng"));
     }
 }

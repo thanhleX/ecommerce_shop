@@ -35,7 +35,7 @@ public class AdminBlogController {
     @PreAuthorize("hasAuthority('blog:manage')")
     @Operation(summary = "Get all blogs (Admin)")
     public ResponseEntity<ApiResponse<PageResponse<BlogResponse>>> getAllBlogs(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(blogService.getAllBlogs(pageable))));
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(blogService.getAllBlogs(pageable)), "Lấy danh sách bài viết thành công"));
     }
 
     @PostMapping("/api/admin/blogs")
@@ -44,7 +44,7 @@ public class AdminBlogController {
     public ResponseEntity<ApiResponse<BlogResponse>> createBlog(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody @Valid BlogRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(blogService.create(userDetails.getUsername(), request)));
+        return ResponseEntity.ok(ApiResponse.success(blogService.create(userDetails.getUsername(), request), "Tạo bài viết thành công"));
     }
 
     @PutMapping("/api/admin/blogs/{id}")
@@ -53,7 +53,7 @@ public class AdminBlogController {
     public ResponseEntity<ApiResponse<BlogResponse>> updateBlog(
             @PathVariable Long id,
             @RequestBody @Valid BlogRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(blogService.update(id, request)));
+        return ResponseEntity.ok(ApiResponse.success(blogService.update(id, request), "Cập nhật bài viết thành công"));
     }
 
     @DeleteMapping("/api/admin/blogs/{id}")
@@ -61,7 +61,7 @@ public class AdminBlogController {
     @Operation(summary = "Delete a blog (Admin)")
     public ResponseEntity<ApiResponse<Void>> deleteBlog(@PathVariable Long id) {
         blogService.delete(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa bài viết thành công"));
     }
 
     // ==================== Blog Category ====================
@@ -70,7 +70,7 @@ public class AdminBlogController {
     @PreAuthorize("hasAuthority('blog:manage')")
     @Operation(summary = "Get all blog categories (Admin)")
     public ResponseEntity<ApiResponse<List<BlogCategoryResponse>>> getAllCategories() {
-        return ResponseEntity.ok(ApiResponse.success(blogCategoryService.getAll()));
+        return ResponseEntity.ok(ApiResponse.success(blogCategoryService.getAll(), "Lấy danh mục bài viết thành công"));
     }
 
     @PostMapping("/api/admin/blog-categories")
@@ -78,7 +78,7 @@ public class AdminBlogController {
     @Operation(summary = "Create a blog category (Admin)")
     public ResponseEntity<ApiResponse<BlogCategoryResponse>> createCategory(
             @RequestBody @Valid BlogCategoryRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(blogCategoryService.create(request)));
+        return ResponseEntity.ok(ApiResponse.success(blogCategoryService.create(request), "Tạo danh mục bài viết thành công"));
     }
 
     @PutMapping("/api/admin/blog-categories/{id}")
@@ -87,7 +87,7 @@ public class AdminBlogController {
     public ResponseEntity<ApiResponse<BlogCategoryResponse>> updateCategory(
             @PathVariable Long id,
             @RequestBody @Valid BlogCategoryRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(blogCategoryService.update(id, request)));
+        return ResponseEntity.ok(ApiResponse.success(blogCategoryService.update(id, request), "Cập nhật danh mục bài viết thành công"));
     }
 
     @DeleteMapping("/api/admin/blog-categories/{id}")
@@ -95,6 +95,6 @@ public class AdminBlogController {
     @Operation(summary = "Delete a blog category (Admin)")
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Long id) {
         blogCategoryService.delete(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa danh mục bài viết thành công"));
     }
 }

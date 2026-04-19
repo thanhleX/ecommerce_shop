@@ -9,6 +9,14 @@ const authApi = {
   register: (data) => {
     return axiosClient.post('/auth/register', data);
   },
+
+  googleLogin: (data) => {
+    return axiosClient.post('/auth/google-login', data);
+  },
+
+  linkGoogle: (data) => {
+    return axiosClient.post('/auth/link-google', data);
+  },
   
   getProfile: () => {
     return axiosClient.get('/users/me');
