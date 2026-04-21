@@ -21,7 +21,6 @@ const CheckoutPage = () => {
   
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [addresses, setAddresses] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [addressLoading, setAddressLoading] = useState(false);
 
   // Voucher state

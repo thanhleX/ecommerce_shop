@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import ChatWidget from './components/chat/ChatWidget';
 import CustomerLayout from './components/Layout/CustomerLayout';
 import AdminLayout from './components/Layout/AdminLayout';
 import ProtectedRoute from './components/guards/ProtectedRoute';
@@ -80,6 +81,7 @@ function App() {
         {/* Fallback 404 - Redirect to Home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <ChatWidget />
     </BrowserRouter>
   );
 }

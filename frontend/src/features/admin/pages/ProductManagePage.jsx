@@ -15,7 +15,6 @@ import {
   InputNumber,
   Divider,
   Upload,
-  Image,
   Tooltip,
   Row,
   Col
