@@ -1,19 +1,39 @@
 import { useEffect } from 'react';
-import { Table, Button, Typography, InputNumber, Row, Col, Divider, Empty } from 'antd';
+import { Table, Button, Typography, InputNumber, Row, Col, Divider, Empty, message } from 'antd';
 import { DeleteOutlined, ShoppingCartOutlined, RightOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart';
+import useAuthStore from '../../store/authStore';
 
 const { Title, Text } = Typography;
 
 const CartPage = () => {
-  const { cart, items, loading, fetchCart, updateQuantity, removeItem } = useCart();
+  const { 
+    items, loading, initCart, updateQuantity, removeItem, 
+    selectedItems, setSelectedItems 
+  } = useCart();
+  const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchCart();
+    initCart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleCheckout = () => {
+    if (!isAuthenticated) {
+      message.info('Vui lòng đăng nhập để tiếp tục thanh toán');
+      navigate('/login', { state: { from: '/cart' } });
+      return;
+    }
+
+    if (selectedItems.length === 0) {
+      message.warning('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+      return;
+    }
+
+    navigate('/checkout', { state: { selectedCartItemIds: selectedItems } });
+  };
 
   const columns = [
     {
@@ -26,7 +46,9 @@ const CartPage = () => {
           <div>
             <Text strong style={{ fontSize: 16 }}>{text}</Text>
             <br />
-            <Text type="secondary">Phân loại: {record.size || 'Mặc định'} / {record.color || 'Mặc định'}</Text>
+            <Text type="secondary">
+              Phân loại: {record.size || 'Mặc định'} / {record.color || 'Mặc định'}
+            </Text>
           </div>
         </div>
       ),
@@ -85,7 +107,8 @@ const CartPage = () => {
     );
   }
 
-  const totalPrice = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const selectedProducts = items.filter(item => selectedItems.includes(item.id));
+  const totalAmount = selectedProducts.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   return (
     <div>
@@ -100,6 +123,10 @@ const CartPage = () => {
               rowKey="id" 
               pagination={false}
               loading={loading}
+              rowSelection={{
+                selectedRowKeys: selectedItems,
+                onChange: (keys) => setSelectedItems(keys),
+              }}
             />
           </div>
         </Col>
@@ -110,8 +137,13 @@ const CartPage = () => {
             <Divider style={{ margin: '16px 0' }} />
             
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+              <Text>Số sản phẩm đã chọn:</Text>
+              <Text strong>{selectedItems.length}</Text>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
               <Text>Tạm tính:</Text>
-              <Text strong>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalPrice)}</Text>
+              <Text strong>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalAmount)}</Text>
             </div>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -124,7 +156,7 @@ const CartPage = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
               <Text strong style={{ fontSize: 16 }}>Tổng cộng:</Text>
               <Title level={3} type="danger" style={{ margin: 0 }}>
-                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalPrice)}
+                {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(totalAmount)}
               </Title>
             </div>
 
@@ -132,8 +164,8 @@ const CartPage = () => {
               type="primary" 
               size="large" 
               block 
-              disabled={items.length === 0}
-              onClick={() => navigate('/checkout')}
+              disabled={selectedItems.length === 0}
+              onClick={handleCheckout}
               style={{ height: 50, fontSize: 16, fontWeight: 'bold' }}
             >
               TIẾN HÀNH THANH TOÁN <RightOutlined />

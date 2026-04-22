@@ -50,6 +50,14 @@ public class OrderService {
                 .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
 
         List<CartItem> cartItems = cartItemRepository.findByCart(cart);
+        
+        // Filter items if cartItemIds is provided
+        if (request.getCartItemIds() != null && !request.getCartItemIds().isEmpty()) {
+            cartItems = cartItems.stream()
+                    .filter(item -> request.getCartItemIds().contains(item.getId()))
+                    .toList();
+        }
+
         if (cartItems.isEmpty()) {
             throw new AppException(ErrorCode.CART_EMPTY);
         }

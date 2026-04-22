@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
 import authApi from '../api/authApi';
 import useAuthStore from '../store/authStore';
+import useCartStore from '../store/cartStore';
 
 export const useAuth = () => {
   const [loading, setLoading] = useState(false);
@@ -29,7 +30,35 @@ export const useAuth = () => {
     setAuthData(user, token, refreshToken);
 
     message.success('Đăng nhập thành công!');
-    navigate(redirectUrl, { replace: true });
+
+    // Check for guest cart to merge
+    const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+    if (guestCart.length > 0) {
+      const { Modal } = await import('antd');
+      const { mergeGuestCart } = useCartStore.getState();
+      
+      Modal.confirm({
+        title: 'Bạn có sản phẩm trong giỏ hàng tạm thời',
+        content: 'Bạn có muốn gộp các sản phẩm này vào giỏ hàng chính không? Nếu trùng sản phẩm, số lượng sẽ được cộng dồn.',
+        okText: 'Cộng dồn',
+        cancelText: 'Bỏ qua',
+        onOk: async () => {
+          try {
+            await mergeGuestCart(true);
+            message.success('Đã gộp giỏ hàng thành công!');
+          } catch (err) {
+            message.error('Lỗi khi gộp giỏ hàng');
+          }
+          navigate(redirectUrl, { replace: true });
+        },
+        onCancel: async () => {
+          localStorage.removeItem('guestCart'); // Clear guest cart if they don't want to merge
+          navigate(redirectUrl, { replace: true });
+        }
+      });
+    } else {
+      navigate(redirectUrl, { replace: true });
+    }
   };
 
   const customerLogin = async (values) => {

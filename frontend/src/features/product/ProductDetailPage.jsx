@@ -40,7 +40,15 @@ const ProductDetailPage = () => {
 
   const handleAddToCart = async () => {
     if (selectedVariant) {
-      const success = await addToCart(selectedVariant.id, quantity);
+      const productInfo = {
+        productName: product.name,
+        price: selectedVariant.price,
+        imageUrl: product.images?.[0]?.url || '',
+        size: selectedVariant.size, // Assuming these exist or handled in productInfo
+        color: selectedVariant.color,
+        attributes: selectedVariant.attributes
+      };
+      const success = await addToCart(selectedVariant.id, quantity, productInfo);
       if (success) {
         setQuantity(1);
       }

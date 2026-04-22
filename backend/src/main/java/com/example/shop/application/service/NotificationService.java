@@ -70,7 +70,8 @@ public class NotificationService {
     }
 
     public void notifyManagement(String title, String content, NotificationType type) {
-        List<String> managementRoles = List.of("ROLE_ADMIN", "ROLE_STAFF");
+        // Database role names do NOT have ROLE_ prefix
+        List<String> managementRoles = List.of("SUPER_ADMIN", "STAFF");
         createNotification(managementRoles, title, content, type);
     }
 
@@ -80,10 +81,11 @@ public class NotificationService {
 
     public void sendRealTime(List<String> roles, NotificationResponse notification) {
         for (String role : roles) {
-            messagingTemplate.convertAndSend("/topic/notifications/role/" + role, notification);
+            // Frontend expects ROLE_ prefix for authorities/roles
+            String topicRole = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+            messagingTemplate.convertAndSend("/topic/notifications/role/" + topicRole, notification);
         }
     }
-
 
     public Page<NotificationResponse> getNotifications(String username, Pageable pageable) {
         User user = userRepository.findByUsername(username)

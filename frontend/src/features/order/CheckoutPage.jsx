@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Tag, Form, Input, Button, Typography, Radio, Row, Col, Divider, Select, message, Empty, Space } from 'antd';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { PlusOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import { useCart } from '../../hooks/useCart';
 import { useOrders } from '../../hooks/useOrders';
@@ -16,6 +16,8 @@ const CheckoutPage = () => {
   const { placeOrder, loading: placingOrder } = useOrders();
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const location = useLocation();
+  const selectedCartItemIds = location.state?.selectedCartItemIds || [];
   
   const { user: currentUser } = useAuthStore();
   
@@ -70,11 +72,15 @@ const CheckoutPage = () => {
     fetchAddresses();
   }, [fetchCart, form]);
 
-  if (items.length === 0) {
+  const checkoutItems = selectedCartItemIds.length > 0 
+    ? items.filter(item => selectedCartItemIds.includes(item.id))
+    : items;
+
+  if (checkoutItems.length === 0) {
     return (
       <div style={{ padding: 100, textAlign: 'center' }}>
-        <Title level={3}>Giỏ hàng đang trống.</Title>
-        <Button type="primary" onClick={() => navigate('/products')}>Quay lại mua sắm</Button>
+        <Title level={3}>Không có sản phẩm nào được chọn để thanh toán.</Title>
+        <Button type="primary" onClick={() => navigate('/cart')}>Quay lại giỏ hàng</Button>
       </div>
     );
   }
@@ -115,7 +121,8 @@ const CheckoutPage = () => {
         paymentMethodId: values.paymentMethodId,
         addressId: values.addressId,
         note: values.note,
-        voucherCode: discountInfo ? discountInfo.voucher.code : null
+        voucherCode: discountInfo ? discountInfo.voucher.code : null,
+        cartItemIds: selectedCartItemIds
       };
       
       await placeOrder(orderData);
@@ -124,7 +131,7 @@ const CheckoutPage = () => {
     }
   };
 
-  const totalPrice = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const totalPrice = checkoutItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   return (
     <div className="checkout-page">
@@ -216,7 +223,7 @@ const CheckoutPage = () => {
               <Title level={4}>Chi tiết đơn hàng</Title>
               <Divider />
               
-              {items.map(item => (
+              {checkoutItems.map(item => (
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                   <Text style={{ flex: 1, paddingRight: 16 }}>
                     {item.productName} (x{item.quantity})

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ChatWidget from './components/chat/ChatWidget';
 import CustomerLayout from './components/Layout/CustomerLayout';
@@ -19,7 +20,7 @@ import ProfilePage from './features/profile/ProfilePage';
 import BlogListPage from './features/blog/BlogListPage';
 import BlogDetailPage from './features/blog/BlogDetailPage';
 
-// Admin Pages (Phase 10)
+// Admin Pages
 import DashboardPage from './features/admin/pages/DashboardPage';
 import ProductManagePage from './features/admin/pages/ProductManagePage';
 import CategoryManagePage from './features/admin/pages/CategoryManagePage';
@@ -30,40 +31,42 @@ import UserManagePage from './features/admin/pages/UserManagePage';
 import StaffManagePage from './features/admin/pages/StaffManagePage';
 import RoleManagePage from './features/admin/pages/RoleManagePage';
 
-function App() {
+import { useCart } from './hooks/useCart';
+
+/* =========================
+   Component chạy bên trong Router
+========================= */
+function AppContent() {
+  const { initCart } = useCart();
+
+  useEffect(() => {
+    initCart();
+  }, [initCart]);
+
   return (
-    <BrowserRouter>
+    <>
       <Routes>
-        {/* =========================================
-            PUBLIC ROUTES
-         ========================================= */}
+        {/* PUBLIC */}
         <Route path="/login" element={<CustomerLoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
 
-        {/* =========================================
-            CUSTOMER PORTAL (CustomerLayout)
-         ========================================= */}
+        {/* CUSTOMER */}
         <Route path="/" element={<CustomerLayout />}>
-          {/* Public Pages */}
           <Route index element={<HomePage />} />
           <Route path="products" element={<ProductListPage />} />
           <Route path="products/slug/:slug" element={<ProductDetailPage />} />
           <Route path="blog" element={<BlogListPage />} />
           <Route path="blog/:slug" element={<BlogDetailPage />} />
-          
-          {/* Protected Customer Pages */}
+          <Route path="cart" element={<CartPage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+
           <Route element={<ProtectedRoute />}>
-            <Route path="cart" element={<CartPage />} />
-            <Route path="checkout" element={<CheckoutPage />} />
             <Route path="profile" element={<ProfilePage />} />
-            {/* profile/orders handles inside ProfilePage tabs */}
           </Route>
         </Route>
 
-        {/* =========================================
-            ADMIN PORTAL (AdminRoute -> AdminLayout)
-         ========================================= */}
+        {/* ADMIN */}
         <Route path="/admin" element={<AdminRoute />}>
           <Route element={<AdminLayout />}>
             <Route index element={<DashboardPage />} />
@@ -78,10 +81,21 @@ function App() {
           </Route>
         </Route>
 
-        {/* Fallback 404 - Redirect to Home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
       <ChatWidget />
+    </>
+  );
+}
+
+/* =========================
+   Root App
+========================= */
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }

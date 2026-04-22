@@ -20,6 +20,11 @@ const cartApi = {
 
   clearCart() {
     return axiosClient.delete('/cart');
+  },
+
+  mergeCart(data) {
+    // data: { items: [{ productVariantId, quantity }], combine: boolean }
+    return axiosClient.post('/cart/merge', data);
   }
 };
 

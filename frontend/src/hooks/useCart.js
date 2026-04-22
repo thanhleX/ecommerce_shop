@@ -8,27 +8,21 @@ export const useCart = () => {
   const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleAddToCart = async (productVariantId, quantity = 1) => {
-    if (!isAuthenticated) {
-      message.info('Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng');
-      navigate('/login');
-      return false;
-    }
-
+  const handleAddToCart = async (productVariantId, quantity = 1, productInfo = null) => {
     try {
       if (!productVariantId) {
         message.warning('Vui lòng chọn phân loại sản phẩm hợp lệ.');
         return false;
       }
       
-      const success = await cartStore.addToCart(productVariantId, quantity);
+      const success = await cartStore.addToCart(productVariantId, quantity, productInfo);
       if (success) {
         message.success('Đã thêm sản phẩm vào giỏ hàng!');
         return true;
       }
       return false;
     } catch (error) {
-      if (error.response?.status === 401) {
+      if (error.response?.status === 401 && isAuthenticated) {
         message.warning('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
         navigate('/login');
       } else {
@@ -65,10 +59,15 @@ export const useCart = () => {
     items: cartStore.items,
     cartCount: cartStore.cartCount,
     loading: cartStore.loading,
+    selectedItems: cartStore.selectedItems,
     fetchCart: cartStore.fetchCart,
+    initCart: cartStore.initCart,
     addToCart: handleAddToCart,
     updateQuantity: handleUpdateQuantity,
     removeItem: handleRemoveItem,
+    toggleSelectItem: cartStore.toggleSelectItem,
+    setSelectedItems: cartStore.setSelectedItems,
+    mergeGuestCart: cartStore.mergeGuestCart,
     clearCartLocal: cartStore.clearCartLocal
   };
 };

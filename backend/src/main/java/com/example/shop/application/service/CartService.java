@@ -105,6 +105,41 @@ public class CartService {
         return buildCartResponse(cart);
     }
 
+    @Transactional
+    public CartResponse mergeCart(Long userId, List<CartItemRequest> items, boolean combine) {
+        Cart cart = getCartEntity(userId);
+        
+        for (CartItemRequest itemRequest : items) {
+            ProductVariant variant = productVariantRepository.findById(itemRequest.getProductVariantId())
+                    .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_VARIANT_NOT_FOUND));
+
+            CartItem existingItem = cartItemRepository.findByCartAndProductVariant(cart, variant)
+                    .orElse(null);
+
+            if (existingItem != null) {
+                if (combine) {
+                    existingItem.setQuantity(existingItem.getQuantity() + itemRequest.getQuantity());
+                    // Check stock after combining
+                    if (variant.getQuantity() < existingItem.getQuantity()) {
+                        existingItem.setQuantity(variant.getQuantity()); // Cap at max available
+                    }
+                    cartItemRepository.save(existingItem);
+                }
+                // If not combine, we do nothing (keep existing item in DB as requested "không thì xóa" - usually means don't add the guest one)
+            } else {
+                // New item from local cart
+                CartItem newItem = CartItem.builder()
+                        .cart(cart)
+                        .productVariant(variant)
+                        .quantity(Math.min(itemRequest.getQuantity(), variant.getQuantity()))
+                        .build();
+                cartItemRepository.save(newItem);
+            }
+        }
+        
+        return buildCartResponse(cart);
+    }
+
     public Cart getCartEntity(Long userId) {
         return cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
