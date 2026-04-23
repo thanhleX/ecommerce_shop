@@ -8,5 +8,6 @@ import lombok.Data;
 public class PaymentMethodResponse {
     private Long id;
     private String name;
+    private String description;
     private String image;
 }

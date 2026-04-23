@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-23T14:31:14+0700",
+    date = "2026-04-23T22:33:42+0700",
     comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.46.0.v20260407-0427, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -42,16 +42,16 @@ public class OrderMapperImpl implements OrderMapper {
             orderResponse.paymentMethodId( orderPaymentMethodId( order ) );
             orderResponse.paymentMethodName( orderPaymentMethodName( order ) );
             orderResponse.shippingAddress( addressMapper.toAddressResponse( order.getAddress() ) );
-            orderResponse.discountAmount( order.getDiscountAmount() );
-            orderResponse.finalAmount( order.getFinalAmount() );
             orderResponse.id( order.getId() );
-            orderResponse.note( order.getNote() );
             orderResponse.orderDate( order.getOrderDate() );
-            orderResponse.shippingFee( order.getShippingFee() );
             if ( order.getStatus() != null ) {
                 orderResponse.status( order.getStatus().name() );
             }
+            orderResponse.note( order.getNote() );
             orderResponse.totalAmount( order.getTotalAmount() );
+            orderResponse.discountAmount( order.getDiscountAmount() );
+            orderResponse.shippingFee( order.getShippingFee() );
+            orderResponse.finalAmount( order.getFinalAmount() );
         }
         List<OrderItemResponse> list = items;
         if ( list != null ) {
@@ -73,11 +73,11 @@ public class OrderMapperImpl implements OrderMapper {
         orderItemResponse.sku( orderItemProductVariantSku( orderItem ) );
         orderItemResponse.imageUrl( orderMapImageUrl( orderItemProductVariantProductImages( orderItem ) ) );
         orderItemResponse.id( orderItem.getId() );
-        orderItemResponse.price( orderItem.getPrice() );
         orderItemResponse.productName( orderItem.getProductName() );
+        orderItemResponse.variantAttributes( orderItem.getVariantAttributes() );
+        orderItemResponse.price( orderItem.getPrice() );
         orderItemResponse.quantity( orderItem.getQuantity() );
         orderItemResponse.totalAmount( orderItem.getTotalAmount() );
-        orderItemResponse.variantAttributes( orderItem.getVariantAttributes() );
 
         return orderItemResponse.build();
     }
@@ -91,8 +91,9 @@ public class OrderMapperImpl implements OrderMapper {
         PaymentMethodResponse.PaymentMethodResponseBuilder paymentMethodResponse = PaymentMethodResponse.builder();
 
         paymentMethodResponse.id( paymentMethod.getId() );
-        paymentMethodResponse.image( paymentMethod.getImage() );
         paymentMethodResponse.name( paymentMethod.getName() );
+        paymentMethodResponse.description( paymentMethod.getDescription() );
+        paymentMethodResponse.image( paymentMethod.getImage() );
 
         return paymentMethodResponse.build();
     }

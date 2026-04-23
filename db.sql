@@ -46,6 +46,7 @@ CREATE TABLE payment_methods (
   id bigint NOT NULL AUTO_INCREMENT,
   image text,
   name varchar(100),
+  description varchar(255),
   PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 

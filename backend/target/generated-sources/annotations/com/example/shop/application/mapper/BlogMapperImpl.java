@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-23T14:31:13+0700",
+    date = "2026-04-23T22:33:42+0700",
     comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.46.0.v20260407-0427, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
@@ -24,13 +24,13 @@ public class BlogMapperImpl implements BlogMapper {
 
         Blog.BlogBuilder blog = Blog.builder();
 
-        blog.carouselOrder( request.getCarouselOrder() );
-        blog.content( request.getContent() );
-        blog.isFeatured( request.getIsFeatured() );
-        blog.isPublished( request.getIsPublished() );
-        blog.slug( request.getSlug() );
-        blog.thumbnail( request.getThumbnail() );
         blog.title( request.getTitle() );
+        blog.slug( request.getSlug() );
+        blog.content( request.getContent() );
+        blog.thumbnail( request.getThumbnail() );
+        blog.isPublished( request.getIsPublished() );
+        blog.isFeatured( request.getIsFeatured() );
+        blog.carouselOrder( request.getCarouselOrder() );
 
         return blog.build();
     }
@@ -46,15 +46,15 @@ public class BlogMapperImpl implements BlogMapper {
         blogResponse.authorName( blogUserFullName( blog ) );
         blogResponse.categoryName( blogBlogCategoryName( blog ) );
         blogResponse.blogCategoryId( blogBlogCategoryId( blog ) );
-        blogResponse.carouselOrder( blog.getCarouselOrder() );
-        blogResponse.content( blog.getContent() );
-        blogResponse.createdAt( blog.getCreatedAt() );
         blogResponse.id( blog.getId() );
-        blogResponse.isFeatured( blog.getIsFeatured() );
-        blogResponse.isPublished( blog.getIsPublished() );
-        blogResponse.slug( blog.getSlug() );
-        blogResponse.thumbnail( blog.getThumbnail() );
         blogResponse.title( blog.getTitle() );
+        blogResponse.slug( blog.getSlug() );
+        blogResponse.content( blog.getContent() );
+        blogResponse.thumbnail( blog.getThumbnail() );
+        blogResponse.isPublished( blog.getIsPublished() );
+        blogResponse.isFeatured( blog.getIsFeatured() );
+        blogResponse.carouselOrder( blog.getCarouselOrder() );
+        blogResponse.createdAt( blog.getCreatedAt() );
         blogResponse.updatedAt( blog.getUpdatedAt() );
 
         return blogResponse.build();

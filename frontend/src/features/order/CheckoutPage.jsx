@@ -18,9 +18,9 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const selectedCartItemIds = location.state?.selectedCartItemIds || [];
-  
+
   const { user: currentUser } = useAuthStore();
-  
+
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [addressLoading, setAddressLoading] = useState(false);
@@ -32,7 +32,7 @@ const CheckoutPage = () => {
 
   useEffect(() => {
     fetchCart();
-    
+
     // Fetch payment methods
     const fetchPMs = async () => {
       try {
@@ -54,7 +54,7 @@ const CheckoutPage = () => {
         const res = await addressApi.getAddresses();
         const data = res.data || res;
         setAddresses(data || []);
-        
+
         // Set default address if exists
         if (data?.length > 0) {
           const defaultAddr = data.find(a => a.isDefault) || data[0];
@@ -72,7 +72,7 @@ const CheckoutPage = () => {
     fetchAddresses();
   }, [fetchCart, form]);
 
-  const checkoutItems = selectedCartItemIds.length > 0 
+  const checkoutItems = selectedCartItemIds.length > 0
     ? items.filter(item => selectedCartItemIds.includes(item.id))
     : items;
 
@@ -93,10 +93,10 @@ const CheckoutPage = () => {
 
     setValidatingVoucher(true);
     try {
-      const res = await voucherApi.validate({ 
-        code: voucherCode, 
-        userId: currentUser?.id, 
-        orderValue: totalPrice 
+      const res = await voucherApi.validate({
+        code: voucherCode,
+        userId: currentUser?.id,
+        orderValue: totalPrice
       });
       const data = res.data || res;
       setDiscountInfo(data);
@@ -124,7 +124,7 @@ const CheckoutPage = () => {
         voucherCode: discountInfo ? discountInfo.voucher.code : null,
         cartItemIds: selectedCartItemIds
       };
-      
+
       await placeOrder(orderData);
     } catch (error) {
       // Error is handled in hook (useOrders)
@@ -136,7 +136,7 @@ const CheckoutPage = () => {
   return (
     <div className="checkout-page">
       <Title level={2} style={{ marginBottom: 32 }}>Thanh Toán</Title>
-      
+
       <Form form={form} layout="vertical" onFinish={onFinish}>
         <Row gutter={[48, 24]}>
           <Col xs={24} lg={14}>
@@ -152,12 +152,12 @@ const CheckoutPage = () => {
               </div>
 
               {addresses.length > 0 ? (
-                <Form.Item 
-                  name="addressId" 
+                <Form.Item
+                  name="addressId"
                   rules={[{ required: true, message: 'Vui lòng chọn địa chỉ' }]}
                 >
-                  <Select 
-                    placeholder="Chọn địa chỉ giao hàng" 
+                  <Select
+                    placeholder="Chọn địa chỉ giao hàng"
                     loading={addressLoading}
                     size="large"
                     style={{ width: '100%' }}
@@ -177,14 +177,14 @@ const CheckoutPage = () => {
                   </Select>
                 </Form.Item>
               ) : (
-                <Empty 
+                <Empty
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                   description={
                     <span>Anh chưa có địa chỉ giao hàng nào. <Link to="/profile">Thêm ngay!</Link></span>
                   }
                 />
               )}
-              
+
               <Form.Item name="note" label="Ghi chú đơn hàng" style={{ marginTop: 24 }}>
                 <Input.TextArea rows={3} placeholder="Ghi chú cho người giao hàng..." />
               </Form.Item>
@@ -196,16 +196,30 @@ const CheckoutPage = () => {
                 <Radio.Group style={{ width: '100%' }}>
                   <Space orientation="vertical" style={{ width: '100%' }}>
                     {paymentMethods.length > 0 ? paymentMethods.map(pm => (
-                      <Radio key={pm.id} value={pm.id} style={{ 
-                        width: '100%', 
-                        padding: '16px', 
-                        border: '1px solid #f0f0f0', 
-                        borderRadius: '8px',
-                        marginBottom: '8px'
+                      <Radio key={pm.id} value={pm.id} style={{
+                        width: '100%',
+                        padding: '16px',
+                        border: '1px solid #f0f0f0',
+                        borderRadius: '12px',
+                        marginBottom: '12px',
+                        transition: 'all 0.3s ease'
                       }}>
-                        <Text strong>{pm.name}</Text>
-                        <br />
-                        <Text type="secondary" style={{ fontSize: '12px' }}>{pm.description || 'Thanh toán an toàn'}</Text>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          {pm.image && (
+                            <img
+                              src={pm.image}
+                              alt={pm.name}
+                              style={{ width: 40, height: 40, objectFit: 'contain', marginRight: 16, borderRadius: 4 }}
+                            />
+                          )}
+                          <div style={{ textAlign: 'left' }}>
+                            <Text strong style={{ fontSize: 16 }}>{pm.name}</Text>
+                            <br />
+                            <Text type="secondary" style={{ fontSize: '13px' }}>
+                              {pm.description || 'Thanh toán an toàn và bảo mật'}
+                            </Text>
+                          </div>
+                        </div>
                       </Radio>
                     )) : (
                       <div style={{ padding: 16, background: '#fffbe6', border: '1px solid #ffe58f', borderRadius: 8 }}>
@@ -219,10 +233,10 @@ const CheckoutPage = () => {
           </Col>
 
           <Col xs={24} lg={10}>
-             <div style={{ background: '#fafafa', padding: 32, borderRadius: 12, border: '1px solid #f0f0f0', position: 'sticky', top: 24 }}>
+            <div style={{ background: '#fafafa', padding: 32, borderRadius: 12, border: '1px solid #f0f0f0', position: 'sticky', top: 24 }}>
               <Title level={4}>Chi tiết đơn hàng</Title>
               <Divider />
-              
+
               {checkoutItems.map(item => (
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                   <Text style={{ flex: 1, paddingRight: 16 }}>
@@ -233,7 +247,7 @@ const CheckoutPage = () => {
                   </Text>
                 </div>
               ))}
-              
+
               <Divider />
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
                 <Text>Tạm tính:</Text>
@@ -248,23 +262,23 @@ const CheckoutPage = () => {
               <div style={{ margin: '20px 0' }}>
                 <Text strong style={{ display: 'block', marginBottom: 8 }}>Mã giảm giá</Text>
                 <Space.Compact style={{ width: '100%' }}>
-                  <Input 
-                    placeholder="Nhập mã voucher..." 
+                  <Input
+                    placeholder="Nhập mã voucher..."
                     value={voucherCode}
                     onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
                     disabled={!!discountInfo}
                   />
                   {!discountInfo ? (
-                    <Button 
-                      type="primary" 
+                    <Button
+                      type="primary"
                       onClick={handleApplyVoucher}
                       loading={validatingVoucher}
                     >
                       Áp dụng
                     </Button>
                   ) : (
-                    <Button 
-                      danger 
+                    <Button
+                      danger
                       onClick={() => {
                         setDiscountInfo(null);
                         setVoucherCode('');
@@ -289,7 +303,7 @@ const CheckoutPage = () => {
                   <Text type="danger" strong>-{new Intl.NumberFormat('vi-VN').format(discountInfo.discount)}đ</Text>
                 </div>
               )}
-              
+
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 32, background: '#fff', padding: 16, borderRadius: 8, border: '1px solid #1890ff' }}>
                 <Text strong style={{ fontSize: 16 }}>Tổng thanh toán:</Text>
                 <Title level={3} type="danger" style={{ margin: 0 }}>
@@ -297,11 +311,11 @@ const CheckoutPage = () => {
                 </Title>
               </div>
 
-              <Button 
-                type="primary" 
-                size="large" 
-                htmlType="submit" 
-                block 
+              <Button
+                type="primary"
+                size="large"
+                htmlType="submit"
+                block
                 loading={placingOrder}
                 style={{ height: 50, fontSize: 16, fontWeight: 'bold' }}
               >
