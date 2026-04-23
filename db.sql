@@ -156,7 +156,6 @@ CREATE TABLE refresh_tokens (
 CREATE TABLE notifications (
   id bigint NOT NULL AUTO_INCREMENT,
   created_at datetime(6),
-  updated_at datetime(6),
   content text,
   is_read boolean,
   title varchar(255),
