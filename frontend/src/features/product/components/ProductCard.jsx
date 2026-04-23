@@ -13,8 +13,20 @@ const ProductCard = ({ product }) => {
                     || product.images?.[0]?.imageUrl 
                     || 'https://via.placeholder.com/300?text=No+Image';
 
-  // Format price (assuming lowest variant price or default)
-  const price = product.variants?.[0]?.price || 0;
+  // Format price (Min - Max range)
+  const getPriceRange = () => {
+    if (!product.variants || product.variants.length === 0) return 0;
+    
+    const prices = product.variants.map(v => v.price);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+
+    if (minPrice === maxPrice) {
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(minPrice);
+    }
+    
+    return `${new Intl.NumberFormat('vi-VN').format(minPrice)} - ${new Intl.NumberFormat('vi-VN').format(maxPrice)}đ`;
+  };
 
   const navigate = useNavigate();
   
@@ -54,7 +66,7 @@ const ProductCard = ({ product }) => {
         description={
           <div style={{ marginTop: 8 }}>
             <Text strong type="danger" style={{ fontSize: '1.2rem', display: 'block' }}>
-              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)}
+              {getPriceRange()}
             </Text>
             {product.discount > 0 && (
               <Tag color="error" variant="borderless" style={{ marginTop: 6 }}>-{product.discount}%</Tag>
