@@ -33,6 +33,7 @@ import StaffManagePage from './features/admin/pages/StaffManagePage';
 import RoleManagePage from './features/admin/pages/RoleManagePage';
 
 import { useCart } from './hooks/useCart';
+import ScrollToTop from './components/common/ScrollToTop';
 
 /* =========================
    Component chạy bên trong Router
@@ -46,6 +47,7 @@ function AppContent() {
 
   return (
     <>
+      <ScrollToTop />
       <Routes>
         {/* GUEST ONLY (Redirect if logged in) */}
         <Route element={<GuestRoute />}>

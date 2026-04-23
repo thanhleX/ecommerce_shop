@@ -1,4 +1,4 @@
-import { Layout, Menu, Button, Dropdown, Badge, Avatar, List, Typography } from 'antd';
+import { Layout, Menu, Button, Dropdown, Badge, Avatar, List, Typography, FloatButton } from 'antd';
 import { ShoppingCartOutlined, UserOutlined, LogoutOutlined, HomeOutlined, AppstoreOutlined, BellOutlined } from '@ant-design/icons';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -8,8 +8,9 @@ import { useAuth } from '../../hooks/useAuth';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import notificationApi from '../../api/notificationApi';
 import { useCart } from '../../hooks/useCart';
+import AppFooter from './AppFooter';
 
-const { Header, Content, Footer } = Layout;
+const { Header, Content } = Layout;
 const { Text } = Typography;
 
 const CustomerLayout = () => {
@@ -153,9 +154,8 @@ const CustomerLayout = () => {
         </div>
       </Content>
 
-      <Footer style={{ textAlign: 'center' }}>
-        Ecommerce Design ©{new Date().getFullYear()}
-      </Footer>
+      <AppFooter />
+      <FloatButton.BackTop visibilityHeight={400} style={{ bottom: 110, right: 41 }} />
     </Layout>
   );
 };
