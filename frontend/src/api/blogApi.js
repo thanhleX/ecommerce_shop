@@ -14,6 +14,9 @@ const blogApi = {
   },
   getFeaturedBlogs() {
     return axiosClient.get('/blogs/featured');
+  },
+  getByCategory(slug, params) {
+    return axiosClient.get(`/blogs/category/${slug}`, { params });
   }
 };
 

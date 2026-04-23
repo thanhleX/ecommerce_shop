@@ -33,6 +33,11 @@ public class BlogService {
         return blogRepository.findByIsPublishedTrue(pageable).map(blogMapper::toResponse);
     }
 
+    public Page<BlogResponse> getBlogsByCategorySlug(String categorySlug, Pageable pageable) {
+        return blogRepository.findByBlogCategorySlugAndIsPublishedTrue(categorySlug, pageable)
+                .map(blogMapper::toResponse);
+    }
+
     public List<BlogResponse> getFeaturedBlogs() {
         return blogRepository.findByIsPublishedTrueAndIsFeaturedTrueOrderByCarouselOrderAsc()
                 .stream()

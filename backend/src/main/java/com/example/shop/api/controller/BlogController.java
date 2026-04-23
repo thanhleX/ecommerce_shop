@@ -46,4 +46,10 @@ public class BlogController {
     public ResponseEntity<ApiResponse<List<BlogCategoryResponse>>> getCategories() {
         return ResponseEntity.ok(ApiResponse.success(blogCategoryService.getActiveCategories(), "Lấy danh mục bài viết thành công"));
     }
+
+    @GetMapping("/api/blogs/category/{slug}")
+    @Operation(summary = "Get blogs by category slug (Public)")
+    public ResponseEntity<ApiResponse<PageResponse<BlogResponse>>> getBlogsByCategory(@PathVariable String slug, Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(PageResponse.of(blogService.getBlogsByCategorySlug(slug, pageable)), "Lấy danh sách bài viết theo danh mục thành công"));
+    }
 }

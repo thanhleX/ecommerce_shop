@@ -12,4 +12,5 @@ public interface BlogRepository extends JpaRepository<Blog, Long> {
     List<Blog> findByIsPublishedTrueAndIsFeaturedTrueOrderByCarouselOrderAsc();
     Optional<Blog> findBySlug(String slug);
     Optional<Blog> findBySlugAndIsPublishedTrue(String slug);
+    Page<Blog> findByBlogCategorySlugAndIsPublishedTrue(String categorySlug, Pageable pageable);
 }
