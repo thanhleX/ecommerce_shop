@@ -14,4 +14,5 @@ public class PlaceOrderRequest {
 
     private String note;
     private String voucherCode;
+    private java.util.List<Long> cartItemIds;
 }
