@@ -5,6 +5,7 @@ import CustomerLayout from './components/Layout/CustomerLayout';
 import AdminLayout from './components/Layout/AdminLayout';
 import ProtectedRoute from './components/guards/ProtectedRoute';
 import AdminRoute from './components/guards/AdminRoute';
+import GuestRoute from './components/guards/GuestRoute';
 
 import CustomerLoginPage from './features/auth/CustomerLoginPage';
 import AdminLoginPage from './features/auth/AdminLoginPage';
@@ -46,10 +47,15 @@ function AppContent() {
   return (
     <>
       <Routes>
-        {/* PUBLIC */}
-        <Route path="/login" element={<CustomerLoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/admin/login" element={<AdminLoginPage />} />
+        {/* GUEST ONLY (Redirect if logged in) */}
+        <Route element={<GuestRoute />}>
+          <Route path="/login" element={<CustomerLoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
+        
+        <Route element={<GuestRoute redirectTo="/admin" />}>
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+        </Route>
 
         {/* CUSTOMER */}
         <Route path="/" element={<CustomerLayout />}>
