@@ -34,7 +34,9 @@ const getInitialPermissions = () => {
   const token = getInitialToken();
   if (token) {
     const decoded = parseJwt(token);
-    return decoded?.permissions || [];
+    const roles = decoded?.roles?.map(r => `ROLE_${r}`) || [];
+    const perms = decoded?.perms || [];
+    return [...roles, ...perms];
   }
   return [];
 };
@@ -53,7 +55,9 @@ const useAuthStore = create((set) => ({
     sessionStorage.setItem('user', JSON.stringify(user));
 
     const decoded = parseJwt(token);
-    const permissions = decoded?.permissions || [];
+    const roles = decoded?.roles?.map(r => `ROLE_${r}`) || [];
+    const perms = decoded?.perms || [];
+    const permissions = [...roles, ...perms];
 
     set({
       user,
@@ -68,7 +72,9 @@ const useAuthStore = create((set) => ({
     sessionStorage.setItem('token', token);
 
     const decoded = parseJwt(token);
-    const permissions = decoded?.permissions || [];
+    const roles = decoded?.roles?.map(r => `ROLE_${r}`) || [];
+    const perms = decoded?.perms || [];
+    const permissions = [...roles, ...perms];
 
     set({ token, permissions });
   },

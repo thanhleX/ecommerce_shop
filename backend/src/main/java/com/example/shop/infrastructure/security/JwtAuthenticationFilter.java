@@ -35,15 +35,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 String username = tokenProvider.getUsernameFromJWT(jwt);
                 Long userId = tokenProvider.getUserIdFromJWT(jwt);
+                java.util.List<String> roles = tokenProvider.getRolesFromJWT(jwt);
                 java.util.List<String> permissions = tokenProvider.getPermissionsFromJWT(jwt);
 
-                java.util.List<org.springframework.security.core.GrantedAuthority> authorities =
-                        permissions == null ? new java.util.ArrayList<>() :
-                                permissions.stream()
-                                        .map(org.springframework.security.core.authority.SimpleGrantedAuthority::new)
-                                        .collect(java.util.stream.Collectors.toList());
+                java.util.List<org.springframework.security.core.GrantedAuthority> authorities = new java.util.ArrayList<>();
+                
+                if (roles != null) {
+                    roles.forEach(role -> authorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role)));
+                }
+                if (permissions != null) {
+                    permissions.forEach(p -> authorities.add(new org.springframework.security.core.authority.SimpleGrantedAuthority(p)));
+                }
 
-                // Không cần query DB → giữ stateless
                 CustomUserDetails userDetails = new CustomUserDetails(
                         userId, username, "", true, true, true, true, authorities);
 
@@ -56,8 +59,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+            log.error("JWT token expired: {}", ex.getMessage());
+            request.setAttribute("jwt-exception", "TOKEN_EXPIRED");
+        } catch (io.jsonwebtoken.security.SecurityException | io.jsonwebtoken.MalformedJwtException ex) {
+            log.error("Invalid JWT signature: {}", ex.getMessage());
+            request.setAttribute("jwt-exception", "TOKEN_INVALID");
         } catch (Exception ex) {
-            log.error("Không thể xác thực người dùng", ex);
+            log.error("Could not set user authentication in security context", ex);
+            request.setAttribute("jwt-exception", "AUTH_ERROR");
         }
 
         filterChain.doFilter(request, response);

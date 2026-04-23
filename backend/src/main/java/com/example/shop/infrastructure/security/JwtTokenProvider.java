@@ -38,58 +38,54 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Generate Tokens
-    // ─────────────────────────────────────────────────────────────
-
-    /**
-     * Tạo Access Token từ thông tin Authentication (sau khi đăng nhập thành công)
-     */
     public String generateToken(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String username = userDetails.getUsername();
         Long id = userDetails.getId();
-        java.util.List<String> permissions = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(java.util.stream.Collectors.toList());
-        return buildToken(username, id, permissions, jwtExpirationInMs);
+        
+        java.util.List<String> roles = new java.util.ArrayList<>();
+        java.util.List<String> permissions = new java.util.ArrayList<>();
+        
+        authentication.getAuthorities().forEach(authority -> {
+            String auth = authority.getAuthority();
+            if (auth.startsWith("ROLE_")) {
+                roles.add(auth.substring(5));
+            } else {
+                permissions.add(auth);
+            }
+        });
+        
+        return buildToken(username, id, roles, permissions, jwtExpirationInMs);
     }
 
-    /** Tạo Access Token mới từ username và permissions (dùng khi refresh) */
     public String generateTokenFromUser(com.example.shop.domain.entity.User user) {
+        java.util.List<String> roles = new java.util.ArrayList<>();
         java.util.List<String> permissions = new java.util.ArrayList<>();
+        
         if (user.getRoles() != null) {
             user.getRoles().forEach(role -> {
-                permissions.add("ROLE_" + role.getName());
+                roles.add(role.getName());
                 if (role.getPermissions() != null) {
                     role.getPermissions().forEach(p -> permissions.add(p.getName()));
                 }
             });
         }
-        return buildToken(user.getUsername(), user.getId(), permissions, jwtExpirationInMs);
+        return buildToken(user.getUsername(), user.getId(), roles, permissions, jwtExpirationInMs);
     }
 
-    /**
-     * Tạo Refresh Token — là JWT riêng biệt với thời hạn dài hơn.
-     * Chứa thêm claim "type=refresh" để phân biệt với access token.
-     */
     public String generateRefreshToken(String username) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtRefreshExpirationInMs);
 
         return Jwts.builder()
                 .setSubject(username)
-                .claim("type", "refresh")
-                .setId(UUID.randomUUID().toString()) // jti: unique per token
+                .claim("typ", "refresh")
+                .setId(UUID.randomUUID().toString())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
-
-    // ─────────────────────────────────────────────────────────────
-    // Extract Info
-    // ─────────────────────────────────────────────────────────────
 
     public String getUsernameFromJWT(String token) {
         return parseClaims(token).getSubject();
@@ -100,50 +96,35 @@ public class JwtTokenProvider {
     }
 
     @SuppressWarnings("unchecked")
-    public java.util.List<String> getPermissionsFromJWT(String token) {
-        return parseClaims(token).get("permissions", java.util.List.class);
+    public java.util.List<String> getRolesFromJWT(String token) {
+        return parseClaims(token).get("roles", java.util.List.class);
     }
 
-    /**
-     * Lấy thời điểm hết hạn của token (dùng khi lưu vào bảng invalidated_tokens).
-     */
+    @SuppressWarnings("unchecked")
+    public java.util.List<String> getPermissionsFromJWT(String token) {
+        return parseClaims(token).get("perms", java.util.List.class);
+    }
+
     public LocalDateTime getExpirationFromJWT(String token) {
         Date expiration = parseClaims(token).getExpiration();
         return expiration.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Validate
-    // ─────────────────────────────────────────────────────────────
-
     public boolean validateToken(String authToken) {
-        try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(authToken);
-            return true;
-        } catch (SecurityException | MalformedJwtException ex) {
-            log.error("Invalid JWT signature");
-        } catch (ExpiredJwtException ex) {
-            log.error("Expired JWT token");
-        } catch (UnsupportedJwtException ex) {
-            log.error("Unsupported JWT token");
-        } catch (IllegalArgumentException ex) {
-            log.error("JWT claims string is empty.");
-        }
-        return false;
+        Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(authToken);
+        return true;
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Private Helpers
-    // ─────────────────────────────────────────────────────────────
-
-    private String buildToken(String username, Long id, java.util.List<String> permissions, long expirationMs) {
+    private String buildToken(String username, Long id, java.util.List<String> roles, 
+                             java.util.List<String> permissions, long expirationMs) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMs);
 
         return Jwts.builder()
                 .setSubject(username)
                 .claim("id", id)
-                .claim("permissions", permissions)
+                .claim("roles", roles)
+                .claim("perms", permissions)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS256)

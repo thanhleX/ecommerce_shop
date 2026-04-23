@@ -20,10 +20,25 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         
+        String exceptionType = (String) request.getAttribute("jwt-exception");
+        String code = "UNAUTHORIZED";
+        String message = "Authentication required.";
+
+        if ("TOKEN_EXPIRED".equals(exceptionType)) {
+            code = "TOKEN_EXPIRED";
+            message = "Phiên làm việc đã hết hạn. Vui lòng refresh token.";
+        } else if ("TOKEN_INVALID".equals(exceptionType)) {
+            code = "TOKEN_INVALID";
+            message = "Token không hợp lệ hoặc đã bị thay đổi.";
+        } else if ("AUTH_ERROR".equals(exceptionType)) {
+            code = "AUTH_ERROR";
+            message = "Lỗi xác thực hệ thống.";
+        }
+
         Map<String, Object> body = new HashMap<>();
         body.put("success", false);
-        body.put("message", "Thông tin xác thực không hợp lệ hoặc phiên làm việc đã hết hạn.");
-        body.put("errors", null);
+        body.put("code", code);
+        body.put("message", message);
         body.put("timestamp", java.time.Instant.now().toString());
 
         ObjectMapper mapper = new ObjectMapper();

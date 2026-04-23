@@ -226,13 +226,16 @@ public class AuthService {
             throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        // 3. Tạo Access Token mới (không thay Refresh Token)
+        // 3. Xoay vòng Refresh Token (Rotation): Xóa cái cũ, tạo cái mới
         User user = refreshToken.getUser();
+        refreshTokenRepository.delete(refreshToken);
+        
         String newAccessToken = tokenProvider.generateTokenFromUser(user);
+        String newRefreshTokenStr = createAndSaveRefreshToken(user);
 
         return AuthResponse.builder()
                 .token(newAccessToken)
-                .refreshToken(requestToken) // Giữ nguyên refresh token cũ
+                .refreshToken(newRefreshTokenStr) // Trả về Refresh Token mới
                 .type("Bearer")
                 .id(user.getId())
                 .username(user.getUsername())

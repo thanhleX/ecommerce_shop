@@ -35,10 +35,4 @@ public class Notification extends BaseAuditEntity {
 
         if (isRead == null) isRead = false;
     }
-
-    @Transient
-    @Override
-    public LocalDateTime getUpdatedAt() {
-        return null;
-    }
 }

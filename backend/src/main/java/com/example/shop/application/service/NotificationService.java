@@ -70,7 +70,6 @@ public class NotificationService {
     }
 
     public void notifyManagement(String title, String content, NotificationType type) {
-        // Database role names do NOT have ROLE_ prefix
         List<String> managementRoles = List.of("SUPER_ADMIN", "STAFF");
         createNotification(managementRoles, title, content, type);
     }

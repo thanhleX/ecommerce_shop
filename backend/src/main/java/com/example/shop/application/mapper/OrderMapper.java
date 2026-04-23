@@ -40,6 +40,6 @@ public interface OrderMapper {
                 .filter(ProductImage::getIsThumbnail)
                 .findFirst()
                 .map(ProductImage::getImageUrl)
-                .orElse(images.get(0).getImageUrl());
+                .orElse(images.getFirst().getImageUrl());
     }
 }
